@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tooth Timeline</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;padding:10px;margin:0;font-size:14px}
+h1{font-size:16px;margin:0 0 8px}
+.age-box{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.btn{width:50px;height:50px;border-radius:12px;border:none;background:#161b22;color:#e6edf3;font-size:24px;font-weight:700;cursor:pointer}
+.btn:active{background:#d2a8ff;color:#0d1117}
+.age{font-size:30px;font-weight:700;color:#d2a8ff;min-width:110px;text-align:center}
+.age small{font-size:11px;color:#8b949e;font-weight:400;display:block}
+input[type=range]{width:100%;height:18px;margin:2px 0}
+.jumps{display:flex;gap:4px;overflow-x:auto;padding:6px 0;margin-bottom:6px}
+.jump{padding:5px 9px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:11px;white-space:nowrap;cursor:pointer;font-family:inherit}
+.jump:active{background:#d2a8ff;color:#0d1117}
+.info{padding:8px 10px;background:#161b22;border-radius:8px;font-size:12px;margin-bottom:10px;line-height:1.35;min-height:34px}
+.sec{background:#161b22;border-radius:10px;padding:8px;margin-bottom:10px}
+.sec-title{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
+.arch-lbl{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin:6px 0 3px}
+.row{display:flex;align-items:center;gap:2px;overflow-x:auto;padding:2px 0}
+.row::-webkit-scrollbar{display:none}
+.t{width:28px;height:34px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:600;border:1.5px solid transparent;transition:all .15s;flex-shrink:0}
+.t .n{line-height:1;font-size:10px}
+.t .s{line-height:1;font-size:6px;opacity:.75;margin-top:1px}
+.t.absent{background:#21262d;color:#484f58}
+.t.primary{background:rgba(88,166,255,.22);color:#58a6ff}
+.t.permanent{background:rgba(63,185,80,.22);color:#3fb950}
+.t.erupting{background:rgba(240,136,62,.3);color:#f0883e;border-color:#f0883e}
+.t.shed{background:#484f58;color:#0d1117;opacity:.35}
+.midline{width:2px;background:#d2a8ff;align-self:stretch;margin:0 3px;border-radius:1px;flex-shrink:0}
+.chart-head{display:flex;justify-content:space-between;font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;padding:0 4px}
+.chart-row{display:flex;align-items:center;gap:2px;overflow-x:auto;padding:3px 0;min-height:40px}
+.chart-row::-webkit-scrollbar{display:none}
+.chart-sep{height:1px;background:#30363d;margin:4px 0;position:relative}
+.chart-sep::before{content:"";position:absolute;left:50%;top:-4px;width:2px;height:9px;background:#d2a8ff;transform:translateX(-50%)}
+.chart-lbl{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:1px;padding:0 4px;margin:2px 0}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.st{background:#161b22;border-radius:8px;padding:8px;text-align:center}
+.st .v{font-size:20px;font-weight:700;line-height:1}
+.st .l{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.st.p .v{color:#58a6ff}.st.m .v{color:#3fb950}.st.tot .v{color:#d2a8ff}
+.empty{color:#484f58;font-size:11px;padding:8px;font-style:italic}
+</style></head>
+<body>
+<div style="display:flex;gap:6px;margin-bottom:10px">
+<a href="index.html" style="padding:5px 10px;border-radius:6px;background:#d2a8ff;color:#0d1117;text-decoration:none;font-size:12px;font-weight:600">Timeline</a>
+<a href="learn.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Learn</a>
+<a href="tooth3d.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">3D</a>
+<a href="label3d.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Label</a>
+<a href="viva.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Viva</a>
+</div>
+<h1>Tooth Eruption Timeline</h1>
+<div class="age-box">
+<button class="btn" id="minus">−</button>
+<div class="age"><span id="age">0</span><small>years</small></div>
+<button class="btn" id="plus">+</button>
+</div>
+<input type="range" id="slider" min="0" max="25" step="0.25" value="0">
+<div class="jumps">
+<button class="jump" data-go="0">Birth</button>
+<button class="jump" data-go="0.5">6mo</button>
+<button class="jump" data-go="1">1y</button>
+<button class="jump" data-go="2.5">2.5y</button>
+<button class="jump" data-go="6">6y</button>
+<button class="jump" data-go="9">9y</button>
+<button class="jump" data-go="12">12y</button>
+<button class="jump" data-go="18">18y</button>
+<button class="jump" data-go="25">25y</button>
+</div>
+<div class="info" id="info">Edentulous period</div>
+
+<div class="sec">
+<div class="sec-title">Primary (Deciduous) — 20 teeth</div>
+<div class="arch-lbl">Upper Arch</div>
+<div class="row" id="pUpperRow"></div>
+<div class="arch-lbl">Lower Arch</div>
+<div class="row" id="pLowerRow"></div>
+</div>
+
+<div class="sec">
+<div class="sec-title">Permanent — 32 teeth</div>
+<div class="arch-lbl">Upper Arch</div>
+<div class="row" id="mUpperRow"></div>
+<div class="arch-lbl">Lower Arch</div>
+<div class="row" id="mLowerRow"></div>
+</div>
+
+<div class="sec">
+<div class="sec-title">Dental Charting (Exam Format)</div>
+<div class="chart-head"><span>◀ Patient's Right</span><span>Patient's Left ▶</span></div>
+<div class="chart-lbl">Upper</div>
+<div class="chart-row" id="chartUpper"></div>
+<div class="chart-sep"></div>
+<div class="chart-row" id="chartLower"></div>
+<div class="chart-lbl">Lower</div>
+</div>
+
+<div class="sec">
+<div class="sec-title">Age Estimation (Exam Method)</div>
+<div id="estimateBox" style="font-size:12px;line-height:1.6"></div>
+</div>
+
+<div class="stats">
+<div class="st p"><div class="v" id="cP">0</div><div class="l">Primary</div></div>
+<div class="st m"><div class="v" id="cM">0</div><div class="l">Permanent</div></div>
+<div class="st tot"><div class="v" id="cT">0</div><div class="l">Total</div></div>
+</div>
+
+<script>
+const P={51:.7,52:.7,53:1.5,54:1.1,55:2.0,61:.7,62:.7,63:1.5,64:1.1,65:2.0,71:.6,72:.9,73:1.5,74:1.1,75:2.0,81:.6,82:.9,83:1.5,84:1.1,85:2.0};
+const PS={51:7.5,52:8.5,53:10.5,54:10,55:11,61:7.5,62:8.5,63:10.5,64:10,65:11,71:6.5,72:7.5,73:10,74:10,75:11,81:6.5,82:7.5,83:10,84:10,85:11};
+const M={16:6.5,17:13,18:20,15:11,14:10,13:11.5,12:8,11:7,26:6.5,27:13,28:20,25:11,24:10,23:11.5,22:8,21:7,36:6.5,37:12,38:20,35:11,34:10,33:10.5,32:7.5,31:6.5,46:6.5,47:12,48:20,45:11,44:10,43:10.5,42:7.5,41:6.5};
+const SL={11:'CI',12:'LI',13:'C',14:'PM1',15:'PM2',16:'M1',17:'M2',18:'M3',21:'CI',22:'LI',23:'C',24:'PM1',25:'PM2',26:'M1',27:'M2',28:'M3',31:'CI',32:'LI',33:'C',34:'PM1',35:'PM2',36:'M1',37:'M2',38:'M3',41:'CI',42:'LI',43:'C',44:'PM1',45:'PM2',46:'M1',47:'M2',48:'M3',51:'CI',52:'LI',53:'C',54:'M1',55:'M2',61:'CI',62:'LI',63:'C',64:'M1',65:'M2',71:'CI',72:'LI',73:'C',74:'M1',75:'M2',81:'CI',82:'LI',83:'C',84:'M1',85:'M2'};
+const uP=[55,54,53,52,51,61,62,63,64,65], lP=[85,84,83,82,81,71,72,73,74,75];
+const uM=[18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28], lM=[48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38];
+const UPPER=[[18,null],[17,null],[16,null],[15,55],[14,54],[13,53],[12,52],[11,51],[21,61],[22,62],[23,63],[24,64],[25,65],[26,null],[27,null],[28,null]];
+const LOWER=[[48,null],[47,null],[46,null],[45,85],[44,84],[43,83],[42,82],[41,81],[31,71],[32,72],[33,73],[34,74],[35,75],[36,null],[37,null],[38,null]];
+
+const slider=document.getElementById('slider'),ageEl=document.getElementById('age'),infoEl=document.getElementById('info');
+function pState(fdi,age){const e=P[fdi];if(age<e-.25)return'absent';if(age<e+.25)return'erupting';return age<PS[fdi]?'primary':'shed'}
+function mState(fdi,age){const e=M[fdi];if(age<e-.25)return'absent';if(age<e+.25)return'erupting';return'permanent'}
+function describe(v){if(v<0.5)return'Edentulous period — no teeth present';if(v<2.5)return'Primary teeth erupting (lower central incisors first)';if(v<6)return'Full primary dentition — 20 teeth';if(v<7)return'Mixed dentition begins — first permanent molars erupt behind primary molars';if(v<12)return'Mixed dentition — primary and permanent teeth present';if(v<18)return'Permanent dentition — 28 teeth';if(v<25)return'Third molars may be erupting';return'Full adult dentition — 32 teeth'}
+function tHtml(fdi,state,withSL){return`<div class="t ${state}"><div class="n">${fdi}</div>${withSL?`<div class="s">${SL[fdi]}</div>`:''}</div>`}
+function isLeftQuadrant(fdi){
+  const q=Math.floor(fdi/10);
+  return q===2||q===3||q===6||q===7;
+}
+function renderRow(id,teeth,age,isP,withSL){
+  const el=document.getElementById(id);
+  let html='';
+  teeth.forEach(f=>{
+    if(isLeftQuadrant(f))html+='<div class="midline"></div>';
+    html+=tHtml(f,isP?pState(f,age):mState(f,age),withSL);
+    if(isLeftQuadrant(f))return;
+    if(teeth.indexOf(f)<teeth.length-1&&isLeftQuadrant(teeth[teeth.indexOf(f)+1])){}
+  });
+  // Simpler: rebuild ensuring midline is only inserted once, before first left tooth
+  html='';
+  let done=false;
+  teeth.forEach(f=>{
+    if(!done&&isLeftQuadrant(f)){html+='<div class="midline"></div>';done=true;}
+    html+=tHtml(f,isP?pState(f,age):mState(f,age),withSL);
+  });
+  el.innerHTML=html;
+}
+function toothAt(slot,age){
+  const[pf,pr]=slot;
+  if(pr){const pe=P[pr],ps=PS[pr];if(age<ps-0.1){if(age<pe-0.25)return null;return{fdi:pr,state:age<pe+0.25?'erupting':'primary'}}}
+  const me=M[pf];if(age<me-0.25)return null;return{fdi:pf,state:age<me+0.25?'erupting':'permanent'};
+}
+function renderChart(id,slots,age){
+  const el=document.getElementById(id);
+  const teeth=slots.map(s=>toothAt(s,age)).filter(Boolean);
+  if(!teeth.length){el.innerHTML='<div class="empty">No teeth present</div>';return}
+  let html='',midlineInserted=false;
+  teeth.forEach(t=>{
+    if(!midlineInserted&&isLeftQuadrant(t.fdi)){html+='<div class="midline"></div>';midlineInserted=true;}
+    html+=tHtml(t.fdi,t.state,false);
+  });
+  el.innerHTML=html;
+}
+const PERM_RANGE={11:[6,8],12:[7,9],13:[11,12],14:[9,11],15:[10,12],16:[6,7],17:[12,14],18:[17,25],21:[6,8],22:[7,9],23:[11,12],24:[9,11],25:[10,12],26:[6,7],27:[12,14],28:[17,25],31:[6,8],32:[7,9],33:[11,12],34:[9,11],35:[10,12],36:[6,7],37:[12,14],38:[17,25],41:[6,8],42:[7,9],43:[11,12],44:[9,11],45:[10,12],46:[6,7],47:[12,14],48:[17,25]};
+const PRIM_RANGE={51:[.58,.75],52:[.58,.75],53:[1.42,1.5],54:[1.0,1.17],55:[1.67,2.5],61:[.58,.75],62:[.58,.75],63:[1.42,1.5],64:[1.0,1.17],65:[1.67,2.5],71:[.5,.67],72:[.83,1.0],73:[1.42,1.5],74:[1.0,1.17],75:[1.67,2.5],81:[.5,.67],82:[.83,1.0],83:[1.42,1.5],84:[1.0,1.17],85:[1.67,2.5]};
+function toothName(fdi){const q=Math.floor(fdi/10),n=fdi%10;const isP=q>=5;const qn={1:'Upper Right',2:'Upper Left',3:'Lower Left',4:'Lower Right',5:'Upper Right (Primary)',6:'Upper Left (Primary)',7:'Lower Left (Primary)',8:'Lower Right (Primary)'}[q];const tn=isP?{1:'Central Incisor',2:'Lateral Incisor',3:'Canine',4:'First Molar',5:'Second Molar'}[n]:{1:'Central Incisor',2:'Lateral Incisor',3:'Canine',4:'First Premolar',5:'Second Premolar',6:'First Molar',7:'Second Molar',8:'Third Molar'}[n];return qn+' '+tn;}
+function fmtAge(y){if(y===0)return '0';if(y<1)return Math.round(y*12)+' mo';return (Math.round(y*10)/10)+' y';}
+function estimateAge(age){
+  let lower=0,upper=99,lT=null,uT=null;
+  // Primary — useful only for young children
+  for(const k in PRIM_RANGE){const fdi=+k,s=pState(fdi,age),r=PRIM_RANGE[fdi];
+    if(s==='primary'||s==='erupting'){if(r[0]>lower){lower=r[0];lT=fdi;}}
+    else if(s==='absent'&&age<3){if(r[1]<upper){upper=r[1];uT=fdi;}}
+  }
+  // Permanent — the main exam evidence
+  for(const k in PERM_RANGE){const fdi=+k,s=mState(fdi,age),r=PERM_RANGE[fdi];
+    if(s==='permanent'||s==='erupting'){if(r[0]>lower){lower=r[0];lT=fdi;}}
+    else if(s==='absent'){if(r[1]<upper){upper=r[1];uT=fdi;}}
+  }
+  if(upper>90)upper=null;
+  return{lower,upper,lT,uT};
+}
+function renderEstimate(age){
+  const box=document.getElementById('estimateBox');
+  const e=estimateAge(age);
+  if(!e.lT){box.innerHTML='<span style="color:#8b949e">No teeth erupted — cannot estimate from dentition alone.</span>';return}
+  let html='';
+  html+=`<div style="margin-bottom:6px"><span style="color:#8b949e">Latest erupted:</span> `;
+  html+=`<strong>FDI ${e.lT}</strong> — ${toothName(e.lT)}`;
+  html+=` <span style="color:#58a6ff">(present)</span>`;
+  html+=`<br><span style="color:#8b949e;font-size:11px">erupts ${fmtAge(PERM_RANGE[e.lT]?PERM_RANGE[e.lT][0]:PRIM_RANGE[e.lT][0])}–${fmtAge(PERM_RANGE[e.lT]?PERM_RANGE[e.lT][1]:PRIM_RANGE[e.lT][1])} → since erupted, <strong>age ≥ ${fmtAge(e.lower)}</strong></span></div>`;
+  if(e.uT){
+    html+=`<div style="margin-bottom:6px"><span style="color:#8b949e">Earliest unerupted:</span> `;
+    html+=`<strong>FDI ${e.uT}</strong> — ${toothName(e.uT)}`;
+    html+=` <span style="color:#f0883e">(absent)</span>`;
+    html+=`<br><span style="color:#8b949e;font-size:11px">erupts ${fmtAge(PERM_RANGE[e.uT]?PERM_RANGE[e.uT][0]:PRIM_RANGE[e.uT][0])}–${fmtAge(PERM_RANGE[e.uT]?PERM_RANGE[e.uT][1]:PRIM_RANGE[e.uT][1])} → since not erupted, <strong>age ≤ ${fmtAge(e.upper)}</strong></span></div>`;
+  }
+  html+=`<div style="margin-top:10px;padding:10px;background:#0d1117;border-radius:6px;text-align:center;border:1px solid #d2a8ff"><span style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:1px">Estimated age</span><br><span style="font-size:20px;font-weight:700;color:#d2a8ff">${fmtAge(e.lower)} to ${e.uT?fmtAge(e.upper):'∞'}</span></div>`;
+  html+=`<div style="margin-top:8px;font-size:10px;color:#8b949e">Reference: Reddy's Tables 4.8 &amp; 4.9</div>`;
+  box.innerHTML=html;
+}
+function render(age){
+  ageEl.textContent=age%1===0?age:age.toFixed(2).replace(/0$/,'');
+  infoEl.textContent=describe(age);
+  renderRow('pUpperRow',uP,age,true,true);
+  renderRow('pLowerRow',lP,age,true,true);
+  renderRow('mUpperRow',uM,age,false,true);
+  renderRow('mLowerRow',lM,age,false,true);
+  renderChart('chartUpper',UPPER,age);
+  renderChart('chartLower',LOWER,age);
+  renderEstimate(age);
+  let cp=0,cm=0;
+  uP.concat(lP).forEach(f=>{const s=pState(f,age);if(s==='primary'||s==='erupting')cp++});
+  uM.concat(lM).forEach(f=>{const s=mState(f,age);if(s==='permanent'||s==='erupting')cm++});
+  document.getElementById('cP').textContent=cp;
+  document.getElementById('cM').textContent=cm;
+  document.getElementById('cT').textContent=cp+cm;
+}
+function update(v){v=Math.max(0,Math.min(25,Math.round(v*100)/100));slider.value=v;render(v)}
+document.getElementById('plus').onclick=()=>update(parseFloat(slider.value)+0.25);
+document.getElementById('minus').onclick=()=>update(parseFloat(slider.value)-0.25);
+slider.oninput=()=>update(parseFloat(slider.value));
+document.querySelectorAll('.jump').forEach(b=>b.onclick=()=>update(parseFloat(b.dataset.go)));
+update(0);
+</script>
+</body></html>

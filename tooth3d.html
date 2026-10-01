@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>3D Tooth Morphology</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;padding:12px;margin:0;font-size:13px}
+.nav{display:flex;gap:6px;margin-bottom:10px}
+.nav a{padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.mode{display:flex;gap:6px;margin-bottom:8px}
+.mode button{flex:1;padding:7px 4px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:11px;cursor:pointer;font-family:inherit}
+.mode button.on{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff;font-weight:600}
+select{width:100%;padding:8px;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:6px;font-size:12px;font-family:inherit;margin-bottom:8px}
+.viewer{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;height:50vh;min-height:300px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;top:8px;left:8px;font-size:10px;color:#8b949e;background:rgba(0,0,0,.5);padding:3px 7px;border-radius:4px;pointer-events:none}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b949e;font-size:12px;background:rgba(13,17,23,.7)}
+.tag{position:absolute;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;pointer-events:none;white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+.tag.crown{background:rgba(88,166,255,.85);color:#fff;top:12%;right:12%}
+.tag.neck{background:rgba(210,168,255,.85);color:#fff;top:48%;right:12%}
+.tag.root{background:rgba(240,136,62,.85);color:#fff;bottom:12%;right:12%}
+.info{margin-top:10px;background:#161b22;border-radius:8px;padding:10px;font-size:12px;line-height:1.5}
+.info strong{color:#d2a8ff}
+.fdi-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;background:#d2a8ff;color:#0d1117;margin-right:6px}
+.legend{display:grid;gap:6px;margin-top:10px}
+.legend .item{background:#161b22;border-radius:6px;padding:8px 10px;font-size:11.5px;line-height:1.4;display:flex;gap:8px;align-items:flex-start}
+.legend .tagb{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;flex-shrink:0;text-transform:uppercase}
+.legend .tagb.c{background:rgba(88,166,255,.2);color:#58a6ff}
+.legend .tagb.n{background:rgba(210,168,255,.2);color:#d2a8ff}
+.legend .tagb.r{background:rgba(240,136,62,.2);color:#f0883e}
+.compare-wrap{display:none;grid-template-columns:1fr 1fr;gap:6px;height:52vh;min-height:320px}
+.compare-wrap.on{display:grid}
+.pane{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;overflow:hidden;touch-action:none}
+.pane-view{width:100%;height:100%}
+.pane-view canvas{display:block;width:100%!important;height:100%!important}
+.pane-label{position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;background:rgba(210,168,255,.9);color:#0d1117;z-index:2;pointer-events:none;text-transform:uppercase;letter-spacing:.5px}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html" class="active">3D</a>
+<a href="label3d.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Label</a>
+<a href="viva.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Viva</a>
+</div>
+
+<h1>Tooth Morphology — 3D</h1>
+<div class="sub">Tap and drag to rotate · pinch to zoom</div>
+
+<div class="mode">
+<button class="on" data-mode="single">Single tooth</button>
+<button data-mode="compare">Compare primary vs permanent</button>
+</div>
+
+<select id="picker"></select>
+<div id="comparePick" style="display:none;margin-bottom:8px">
+<label style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px">Primary tooth</label>
+<select id="pickPrimary" style="margin-bottom:6px"></select>
+<label style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px">Permanent tooth (paired)</label>
+<select id="pickPermanent"></select>
+</div>
+
+<div class="viewer" id="viewer">
+<div class="hint">drag · pinch</div>
+<div class="loading" id="loading">Loading 3D model…</div>
+<div class="tag crown">Crown</div>
+<div class="tag neck">Neck</div>
+<div class="tag root">Root</div>
+</div>
+
+<div class="compare-wrap" id="compareWrap">
+  <div class="pane">
+    <div class="pane-label">Primary</div>
+    <div class="pane-view" id="paneA"></div>
+  </div>
+  <div class="pane">
+    <div class="pane-label">Permanent</div>
+    <div class="pane-view" id="paneB"></div>
+  </div>
+</div>
+
+<div class="info" id="info"></div>
+
+<div class="legend">
+<div class="item"><span class="tagb c">Crown</span><span>Visible above the gum. Covered by enamel. Shape varies by tooth type — chisel (incisor), conical (canine), cusped (premolar/molar).</span></div>
+<div class="item"><span class="tagb n">Neck</span><span>Constricted junction of crown and root. More constricted in primary teeth, less in permanent.</span></div>
+<div class="item"><span class="tagb r">Root</span><span>Embedded in jaw. Covered by cementum. Primary roots splay wider; permanent roots are closer together.</span></div>
+</div>
+
+<script>
+window.addEventListener("error", function(e){
+  document.body.insertAdjacentHTML("beforeend",
+    '<div style="position:fixed;bottom:0;left:0;right:0;background:#f0883e;color:#000;padding:12px;font-size:12px;z-index:9999;font-family:monospace;line-height:1.4">' +
+    "ERROR: " + e.message + "<br>at " + (e.filename||"") + ":" + (e.lineno||"") + "</div>");
+});
+window.addEventListener("unhandledrejection", function(e){
+  document.body.insertAdjacentHTML("beforeend",
+    '<div style="position:fixed;bottom:0;left:0;right:0;background:#f0883e;color:#000;padding:12px;font-size:12px;z-index:9999;font-family:monospace;line-height:1.4">' +
+    "ASYNC ERROR: " + (e.reason && e.reason.message ? e.reason.message : String(e.reason)) + "</div>");
+});
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+    "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ═══════════════════════════════════════════════════════════════
+// CATALOGUE — every GLB in the folder
+// ═══════════════════════════════════════════════════════════════
+const MODELS = {
+  // ─── PRIMARY (deciduous) ────────────────────────────────
+  'primary_upper_left_central_incisor_fdi_61':  {type:'primary', fdi:'61', name:'Primary Upper Left Central Incisor', set:'Upper'},
+  'primary_upper_left_lateral_incisor_fdi_62':  {type:'primary', fdi:'62', name:'Primary Upper Left Lateral Incisor', set:'Upper'},
+  'primary_upper_left_canine_fdi_63':           {type:'primary', fdi:'63', name:'Primary Upper Left Canine', set:'Upper'},
+  'primary_upper_left_first_molar_fdi_64':      {type:'primary', fdi:'64', name:'Primary Upper Left First Molar', set:'Upper'},
+  'primary_upper_left_second_molar_fdi_65':     {type:'primary', fdi:'65', name:'Primary Upper Left Second Molar', set:'Upper'},
+  'primary_lower_left_central_incisor_fdi_71':  {type:'primary', fdi:'71', name:'Primary Lower Left Central Incisor', set:'Lower'},
+  'primary_lower_left_lateral_incisor_fdi_72':  {type:'primary', fdi:'72', name:'Primary Lower Left Lateral Incisor', set:'Lower'},
+  'primary_lower_left_canine_fdi_73':           {type:'primary', fdi:'73', name:'Primary Lower Left Canine', set:'Lower'},
+  'primary_lower_left_first_molar_fdi_74':      {type:'primary', fdi:'74', name:'Primary Lower Left First Molar', set:'Lower'},
+  'primary_lower_left_second_molar_fdi_75':     {type:'primary', fdi:'75', name:'Primary Lower Left Second Molar', set:'Lower'},
+
+  // ─── PERMANENT ──────────────────────────────────────────
+  'maxillary_left_central_incisor': {type:'permanent', fdi:'21', name:'Permanent Upper Left Central Incisor', set:'Upper'},
+  'maxillary_lateral_incisor':      {type:'permanent', fdi:'22', name:'Permanent Upper Left Lateral Incisor', set:'Upper'},
+  'maxillary_canine':               {type:'permanent', fdi:'23', name:'Permanent Upper Left Canine', set:'Upper'},
+  'maxillary_first_premolar':       {type:'permanent', fdi:'24', name:'Permanent Upper Left First Premolar', set:'Upper'},
+  'maxillary_second_premolar':      {type:'permanent', fdi:'25', name:'Permanent Upper Left Second Premolar', set:'Upper'},
+  'maxillary_first_molar_with_cusp_of_carabelli': {type:'permanent', fdi:'26', name:'Permanent Upper Left First Molar', set:'Upper', note:'With cusp of Carabelli'},
+  'maxillary_second_molar':         {type:'permanent', fdi:'27', name:'Permanent Upper Left Second Molar', set:'Upper'},
+  'maxillary_third_molar':          {type:'permanent', fdi:'28', name:'Permanent Upper Left Third Molar', set:'Upper'},
+
+  'mandibular_left_central_incisor': {type:'permanent', fdi:'31', name:'Permanent Lower Left Central Incisor', set:'Lower'},
+  'mandibular_left_lateral_incisor': {type:'permanent', fdi:'32', name:'Permanent Lower Left Lateral Incisor', set:'Lower'},
+  'mandibular_left_canine':          {type:'permanent', fdi:'33', name:'Permanent Lower Left Canine', set:'Lower'},
+  'mandibular_first_premolar':       {type:'permanent', fdi:'34', name:'Permanent Lower Left First Premolar', set:'Lower'},
+  'mandibular_left_second_premolar': {type:'permanent', fdi:'35', name:'Permanent Lower Left Second Premolar', set:'Lower'},
+  'mandibular_first_molar':          {type:'permanent', fdi:'36', name:'Permanent Lower Left First Molar', set:'Lower'},
+  'mandibular_second_molar':         {type:'permanent', fdi:'37', name:'Permanent Lower Left Second Molar', set:'Lower'},
+  'mandibular_third_molar':          {type:'permanent', fdi:'38', name:'Permanent Lower Left Third Molar', set:'Lower'}
+};
+
+const FOLDER = './models/';
+
+// ═══════════════════════════════════════════════════════════════
+// SCENE
+// ═══════════════════════════════════════════════════════════════
+const viewer   = document.getElementById('viewer');
+const loading  = document.getElementById('loading');
+const picker   = document.getElementById('picker');
+const infoEl   = document.getElementById('info');
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+viewer.appendChild(renderer.domElement);
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, viewer.clientWidth / viewer.clientHeight, 0.01, 500);
+camera.position.set(0, 0.5, 3);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const key  = new THREE.DirectionalLight(0xffffff, 1.3); key.position.set(2, 4, 3); scene.add(key);
+const fill = new THREE.DirectionalLight(0x88aaff, 0.6); fill.position.set(-3, 1, -2); scene.add(fill);
+const rim  = new THREE.DirectionalLight(0xffaa88, 0.4); rim.position.set(0, -2, -3); scene.add(rim);
+
+const loader = new GLTFLoader();
+const container = new THREE.Group();
+scene.add(container);
+
+let currentLoad = 0;
+let loadedModels = [];
+
+// ═══════════════════════════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════════════════════════
+function clearScene() {
+  container.clear();
+  loadedModels.forEach(m => {
+    m.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) {
+        if (Array.isArray(o.material)) o.material.forEach(x => x.dispose());
+        else o.material.dispose();
+      }
+    });
+  });
+  loadedModels = [];
+}
+
+function loadGLB(key) {
+  return new Promise((resolve, reject) => {
+    const path = FOLDER + key + '.glb';
+    loader.load(path,
+      gltf => resolve(gltf),
+      undefined,
+      err => reject(err)
+    );
+  });
+}
+
+function normaliseModel(root) {
+  // Fit model to unit cube and centre at origin
+  const box = new THREE.Box3().setFromObject(root);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const centre = new THREE.Vector3(); box.getCenter(centre);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = 1.5 / maxDim;
+  root.position.sub(centre);
+  root.position.multiplyScalar(scale);
+  root.scale.setScalar(scale);
+  return { height: size.y * scale };
+}
+
+async function showSingle(key) {
+  const t0 = performance.now();
+  loading.style.display = 'flex';
+  loading.textContent = 'Loading ' + key + '…';
+  clearScene();
+  try {
+    const gltf = await loadGLB(key);
+    const model = gltf.scene;
+    normaliseModel(model);
+    container.add(model);
+    loadedModels.push(model);
+    const meta = MODELS[key];
+    infoEl.innerHTML = `<span class="fdi-badge">FDI ${meta.fdi}</span><strong>${meta.name}</strong>` +
+      (meta.note ? `<br><span style="color:#f0883e;font-size:11px">⚑ ${meta.note}</span>` : '') +
+      `<br><span style="color:#8b949e;font-size:11px">${meta.type === 'primary' ? 'Primary (deciduous)' : 'Permanent'} · ${meta.set} arch · loaded in ${Math.round(performance.now()-t0)}ms</span>`;
+    controls.target.set(0, 0, 0);
+    controls.update();
+    loading.style.display = 'none';
+  } catch (err) {
+    loading.textContent = 'Failed to load ' + key + '.glb';
+    console.error(err);
+  }
+}
+
+function buildComparePickers() {
+  const pp = document.getElementById('pickPrimary');
+  const pm = document.getElementById('pickPermanent');
+  pp.innerHTML = '';
+  pm.innerHTML = '';
+  const sortLowerFirst = (a, b) => {
+    const aL = a[1].set === 'Lower' ? 0 : 1;
+    const bL = b[1].set === 'Lower' ? 0 : 1;
+    if (aL !== bL) return aL - bL;
+    return a[1].fdi.localeCompare(b[1].fdi);
+  };
+  Object.entries(MODELS).filter(([k, v]) => v.type === 'primary').sort(sortLowerFirst).forEach(([k, v]) => {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = v.fdi + ' — ' + v.name;
+    pp.appendChild(o);
+  });
+  Object.entries(MODELS).filter(([k, v]) => v.type === 'permanent').sort(sortLowerFirst).forEach(([k, v]) => {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = v.fdi + ' — ' + v.name;
+    pm.appendChild(o);
+  });
+  pp.value = 'primary_lower_left_central_incisor_fdi_71';
+  pm.value = 'mandibular_left_central_incisor';
+  pp.onchange = () => showCompare();
+  pm.onchange = () => showCompare();
+}
+
+let panes = { A: null, B: null };
+
+function makePane(el) {
+  const w = el.clientWidth || 300, h = el.clientHeight || 300;
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  r.setSize(w, h);
+  r.toneMapping = THREE.ACESFilmicToneMapping;
+  el.appendChild(r.domElement);
+
+  const sc = new THREE.Scene();
+  const c = new THREE.PerspectiveCamera(40, w / h, 0.01, 500);
+  c.position.set(0, 0, 3.2);
+
+  const ct = new OrbitControls(c, r.domElement);
+  ct.enableDamping = true;
+  ct.dampingFactor = 0.08;
+  ct.enablePan = false;
+  ct.autoRotate = false;
+
+  sc.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const k = new THREE.DirectionalLight(0xffffff, 1.3); k.position.set(2, 4, 3); sc.add(k);
+  const f = new THREE.DirectionalLight(0x88aaff, 0.6); f.position.set(-3, 1, -2); sc.add(f);
+  const rm = new THREE.DirectionalLight(0xffaa88, 0.4); rm.position.set(0, -2, -3); sc.add(rm);
+
+  const grp = new THREE.Group();
+  sc.add(grp);
+
+  return { el, renderer: r, scene: sc, camera: c, controls: ct, group: grp, model: null };
+}
+
+function disposePane(p) {
+  if (!p) return;
+  if (p.model) {
+    p.model.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) {
+        if (Array.isArray(o.material)) o.material.forEach(x => x.dispose());
+        else o.material.dispose();
+      }
+    });
+  }
+  try { p.renderer.dispose(); } catch(e){}
+  p.el.innerHTML = '';
+}
+
+async function showCompare() {
+  const pKey = document.getElementById('pickPrimary').value;
+  const mKey = document.getElementById('pickPermanent').value;
+
+  document.getElementById('viewer').style.display = 'none';
+  document.getElementById('compareWrap').classList.add('on');
+
+  const elA = document.getElementById('paneA');
+  const elB = document.getElementById('paneB');
+  if (panes.A) disposePane(panes.A);
+  if (panes.B) disposePane(panes.B);
+  panes.A = makePane(elA);
+  panes.B = makePane(elB);
+
+  try {
+    const [pr, m] = await Promise.all([loadGLB(pKey), loadGLB(mKey)]);
+    normaliseModel(pr.scene);
+    normaliseModel(m.scene);
+    panes.A.group.add(pr.scene);
+    panes.B.group.add(m.scene);
+    panes.A.model = pr.scene;
+    panes.B.model = m.scene;
+    const pMeta = MODELS[pKey], mMeta = MODELS[mKey];
+    infoEl.innerHTML = '<span class="fdi-badge">' + pMeta.fdi + ' vs ' + mMeta.fdi + '</span><strong>Primary vs Permanent</strong>' +
+      '<br><span style="color:#8b949e;font-size:11px">LEFT: ' + pMeta.name + '<br>RIGHT: ' + mMeta.name + '</span>' +
+      '<br><span style="color:#8b949e;font-size:10.5px;display:inline-block;margin-top:4px">Each pane rotates independently. Match the angle on both sides.</span>';
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function stopCompare() {
+  document.getElementById('compareWrap').classList.remove('on');
+  document.getElementById('viewer').style.display = '';
+  if (panes.A) { disposePane(panes.A); panes.A = null; }
+  if (panes.B) { disposePane(panes.B); panes.B = null; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI
+// ═══════════════════════════════════════════════════════════════
+function buildPicker(mode) {
+  picker.innerHTML = '';
+  if (mode === 'compare') { picker.style.display = 'none'; return; }
+  picker.style.display = 'block';
+  const groups = { primary: [], permanent: [] };
+  Object.entries(MODELS).forEach(([k, v]) => groups[v.type].push([k, v]));
+  ['primary','permanent'].forEach(type => {
+    const grp = document.createElement('optgroup');
+    grp.label = type === 'primary' ? 'Primary (deciduous)' : 'Permanent';
+    groups[type].sort((a,b) => a[1].fdi.localeCompare(b[1].fdi));
+    groups[type].forEach(([k, v]) => {
+      const o = document.createElement('option');
+      o.value = k;
+      o.textContent = `${v.fdi} — ${v.name}`;
+      grp.appendChild(o);
+    });
+    picker.appendChild(grp);
+  });
+}
+
+let currentMode = 'single';
+document.querySelectorAll('.mode button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.mode button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    currentMode = b.dataset.mode;
+    buildPicker(currentMode);
+    if (currentMode === 'compare') {
+      document.querySelectorAll('.tag').forEach(t => t.style.display = 'none');
+      document.getElementById('comparePick').style.display = 'block';
+      buildComparePickers();
+      showCompare();
+    } else {
+      document.getElementById('comparePick').style.display = 'none';
+      stopCompare();
+      document.querySelectorAll('.tag').forEach(t => t.style.display = 'block');
+      showSingle(picker.value);
+    }
+  };
+});
+
+picker.onchange = () => { if (currentMode === 'single') showSingle(picker.value); };
+
+// ═══════════════════════════════════════════════════════════════
+// RESIZE + LOOP
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('resize', () => {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (currentMode === 'single') {
+    container.rotation.y += 0.0015;
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  if (panes.A) { panes.A.controls.update(); panes.A.renderer.render(panes.A.scene, panes.A.camera); }
+  if (panes.B) { panes.B.controls.update(); panes.B.renderer.render(panes.B.scene, panes.B.camera); }
+}
+animate();
+
+// Init
+buildPicker('single');
+showSingle('primary_upper_left_central_incisor_fdi_61');
+</script>
+
+</body></html>

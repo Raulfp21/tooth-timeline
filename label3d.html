@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Label the Tooth</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;padding:12px;margin:0;font-size:13px}
+.nav{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.nav a{padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:10px;line-height:1.4}
+select{width:100%;padding:8px;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:6px;font-size:12px;font-family:inherit;margin-bottom:8px}
+.mode{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:8px}
+.mode button{padding:8px 3px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;line-height:1.2}
+.mode button .num{display:block;font-size:14px;font-weight:700;margin-bottom:2px;color:#8b949e}
+.mode button.on{color:#0d1117}
+.mode button.on[data-type="crown"]{background:#58a6ff;border-color:#58a6ff}
+.mode button.on[data-type="cusp"]{background:#f0883e;border-color:#f0883e}
+.mode button.on[data-type="neck"]{background:#3fb950;border-color:#3fb950}
+.mode button.on[data-type="root"]{background:#d2a8ff;border-color:#d2a8ff}
+.mode button.on .num{color:#0d1117}
+.viewer{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;height:46vh;min-height:270px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;top:8px;left:8px;font-size:10px;color:#8b949e;background:rgba(0,0,0,.5);padding:3px 7px;border-radius:4px;pointer-events:none}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b949e;font-size:12px;background:rgba(13,17,23,.7);pointer-events:none}
+.controls{display:flex;gap:6px;margin-top:8px}
+.controls button{flex:1;padding:10px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.controls .check{background:#3fb950;color:#0d1117}
+.controls .reset{background:#161b22;color:#e6edf3;border:1px solid #30363d}
+.status{margin-top:10px;background:#161b22;border-radius:8px;padding:10px;font-size:12px;line-height:1.5}
+.status .row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #21262d}
+.status .row:last-child{border-bottom:none}
+.status .label{font-weight:600}
+.status .label .n{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:4px;font-size:11px;font-weight:700;margin-right:6px;color:#0d1117}
+.status .label.crown .n{background:#58a6ff}
+.status .label.cusp .n{background:#f0883e}
+.status .label.neck .n{background:#3fb950}
+.status .label.root .n{background:#d2a8ff}
+.status .result{font-weight:700}
+.status .result.ok{color:#3fb950}
+.status .result.no{color:#f0883e}
+.status .result.wait{color:#8b949e}
+.verdict{margin-top:8px;text-align:center;font-size:13px;font-weight:700;padding:8px;border-radius:6px;line-height:1.35}
+.verdict.win{background:rgba(63,185,80,.2);color:#3fb950}
+.verdict.partial{background:rgba(240,136,62,.2);color:#f0883e}
+.verdict.none{background:#0d1117;color:#8b949e}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html" class="active">Label</a>
+<a href="viva.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Viva</a>
+</div>
+
+<h1>Label the Tooth</h1>
+<div class="sub">Pick a tooth, tap each button, then tap where that part sits on the tooth.</div>
+
+<select id="picker"></select>
+
+<div class="mode">
+<button data-type="crown"><span class="num">1</span>Crown</button>
+<button data-type="cusp"><span class="num">2</span>Cusp</button>
+<button data-type="neck"><span class="num">3</span>Neck</button>
+<button data-type="root"><span class="num">4</span>Root</button>
+</div>
+
+<div class="viewer" id="viewer">
+<div class="hint">drag to rotate · tap to place dot</div>
+<div class="loading" id="loading">Loading…</div>
+</div>
+
+<div class="controls">
+<button class="check" id="checkBtn">Check answers</button>
+<button class="reset" id="resetBtn">Reset</button>
+</div>
+
+<div class="status" id="status">
+<div class="row"><span class="label crown"><span class="n">1</span>Crown</span><span class="result wait" data-r="crown">—</span></div>
+<div class="row"><span class="label cusp"><span class="n">2</span>Cusp</span><span class="result wait" data-r="cusp">—</span></div>
+<div class="row"><span class="label neck"><span class="n">3</span>Neck</span><span class="result wait" data-r="neck">—</span></div>
+<div class="row"><span class="label root"><span class="n">4</span>Root</span><span class="result wait" data-r="root">—</span></div>
+<div class="verdict none" id="verdict">Place four dots, then check</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+    "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const CATALOG = {
+  'primary_lower_left_central_incisor_fdi_71': {fdi:'71', name:'Primary Lower Central Incisor', type:'primary'},
+  'primary_lower_left_canine_fdi_73':          {fdi:'73', name:'Primary Lower Canine', type:'primary'},
+  'primary_lower_left_second_molar_fdi_75':    {fdi:'75', name:'Primary Lower Second Molar', type:'primary'},
+  'mandibular_left_central_incisor':           {fdi:'31', name:'Permanent Lower Central Incisor', type:'permanent'},
+  'mandibular_left_canine':                    {fdi:'33', name:'Permanent Lower Canine', type:'permanent'},
+  'mandibular_left_second_premolar':           {fdi:'35', name:'Permanent Lower Second Premolar', type:'permanent'},
+  'mandibular_first_molar':                    {fdi:'36', name:'Permanent Lower First Molar', type:'permanent'},
+  'maxillary_left_central_incisor':            {fdi:'21', name:'Permanent Upper Central Incisor', type:'permanent'},
+  'maxillary_canine':                          {fdi:'23', name:'Permanent Upper Canine', type:'permanent'},
+  'maxillary_first_molar_with_cusp_of_carabelli': {fdi:'26', name:'Permanent Upper First Molar', type:'permanent'}
+};
+const FOLDER = './models/';
+
+const COLORS = {
+  crown: {hex:0x58a6ff, css:'#58a6ff'},
+  cusp:  {hex:0xf0883e, css:'#f0883e'},
+  neck:  {hex:0x3fb950, css:'#3fb950'},
+  root:  {hex:0xd2a8ff, css:'#d2a8ff'}
+};
+const ORDER = ['crown','cusp','neck','root'];
+const NUMBERS = {crown:'1', cusp:'2', neck:'3', root:'4'};
+
+// ──────────────────────────────────────────────────────────────
+// SCENE
+// ──────────────────────────────────────────────────────────────
+const viewer = document.getElementById('viewer');
+const loading = document.getElementById('loading');
+const picker = document.getElementById('picker');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(40, viewer.clientWidth / viewer.clientHeight, 0.01, 100);
+camera.position.set(0, 0.1, 3.0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.minDistance = 1.6;
+controls.maxDistance = 8;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const key  = new THREE.DirectionalLight(0xffffff, 1.2); key.position.set(2, 4, 3); scene.add(key);
+const fill = new THREE.DirectionalLight(0x88aaff, 0.5); fill.position.set(-3, 1, -2); scene.add(fill);
+const rim  = new THREE.DirectionalLight(0xffaa88, 0.35); rim.position.set(0, -2, -3); scene.add(rim);
+
+const loader = new GLTFLoader();
+const toothGroup = new THREE.Group();
+scene.add(toothGroup);
+
+let zones = null;
+let markers = { crown: null, cusp: null, neck: null, root: null };
+let activeMode = null;
+
+// ──────────────────────────────────────────────────────────────
+// ZONE DETECTION (no colouring — just fractions)
+// ──────────────────────────────────────────────────────────────
+function detectZones(root) {
+  const box = new THREE.Box3().setFromObject(root);
+  const yMin = box.min.y, yMax = box.max.y;
+  const height = yMax - yMin;
+
+  const positions = [];
+  root.traverse(o => {
+    if (o.isMesh) {
+      const pos = o.geometry.attributes.position;
+      const m = o.matrixWorld;
+      const v = new THREE.Vector3();
+      for (let i = 0; i < pos.count; i++) {
+        v.fromBufferAttribute(pos, i).applyMatrix4(m);
+        positions.push(v.x, v.y, v.z);
+      }
+    }
+  });
+  if (!positions.length) return null;
+
+  const SLICES = 40;
+  const widths = new Array(SLICES).fill(0);
+  for (let i = 0; i < positions.length; i += 3) {
+    const y = positions[i + 1];
+    const idx = Math.min(SLICES - 1, Math.max(0, Math.floor(((y - yMin) / height) * SLICES)));
+    const r = Math.hypot(positions[i], positions[i + 2]);
+    if (r > widths[idx]) widths[idx] = r;
+  }
+
+  let neckIdx = Math.floor(SLICES * 0.5), neckWidth = Infinity;
+  for (let i = Math.floor(SLICES * 0.25); i <= Math.floor(SLICES * 0.75); i++) {
+    if (widths[i] > 0 && widths[i] < neckWidth) { neckWidth = widths[i]; neckIdx = i; }
+  }
+  const neckFrac = (neckIdx + 0.5) / SLICES;
+  const neckHalf = 0.06;
+
+  return {
+    yMin, yMax, height,
+    // cusp = top 15%
+    cuspMin: 0.85, cuspMax: 1.01,
+    // crown = between neck band and cusp
+    crownMin: neckFrac + neckHalf, crownMax: 0.85,
+    // neck band
+    neckMin: neckFrac - neckHalf, neckMax: neckFrac + neckHalf,
+    // root = bottom to neck
+    rootMin: -0.01, rootMax: neckFrac - neckHalf
+  };
+}
+
+function normaliseModel(root) {
+  const box = new THREE.Box3().setFromObject(root);
+  const size = new THREE.Vector3(); box.getSize(size);
+  const centre = new THREE.Vector3(); box.getCenter(centre);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = 1.6 / maxDim;
+  root.position.sub(centre);
+  root.position.multiplyScalar(scale);
+  root.scale.setScalar(scale);
+  root.updateMatrixWorld(true);
+}
+
+function clearGroup() {
+  while (toothGroup.children.length) {
+    const c = toothGroup.children.pop();
+    c.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) {
+        if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
+        else o.material.dispose();
+      }
+    });
+  }
+  markers = { crown: null, cusp: null, neck: null, root: null };
+}
+
+async function loadTooth(key) {
+  loading.style.display = 'flex';
+  loading.textContent = 'Loading ' + (CATALOG[key]?.name || key) + '…';
+  clearGroup();
+  try {
+    const gltf = await new Promise((res, rej) =>
+      loader.load(FOLDER + key + '.glb', g => res(g), undefined, e => rej(e))
+    );
+    const root = gltf.scene;
+    normaliseModel(root);
+    toothGroup.add(root);
+    zones = detectZones(root);
+    camera.position.set(0, 0.1, 3.0);
+    controls.target.set(0, 0, 0);
+    controls.update();
+    loading.style.display = 'none';
+    resetMarkers();
+  } catch (e) {
+    console.error(e);
+    loading.textContent = 'Failed to load ' + key;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// MARKERS — sprite with number + colour
+// ──────────────────────────────────────────────────────────────
+function makeMarkerSprite(type) {
+  const size = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = COLORS[type].css;
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size/2 - 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 7;
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 76px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(NUMBERS[type], size/2, size/2 + 4);
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+  const s = new THREE.Sprite(mat);
+  s.scale.set(0.18, 0.18, 1);
+  return s;
+}
+
+function placeMarker(point, type) {
+  if (markers[type]) {
+    toothGroup.remove(markers[type]);
+    if (markers[type].material) {
+      if (markers[type].material.map) markers[type].material.map.dispose();
+      markers[type].material.dispose();
+    }
+  }
+  const sprite = makeMarkerSprite(type);
+  const local = toothGroup.worldToLocal(point.clone());
+  sprite.position.copy(local);
+  toothGroup.add(sprite);
+  markers[type] = sprite;
+}
+
+const raycaster = new THREE.Raycaster();
+
+function onTap(e) {
+  if (!activeMode) return;
+  const rect = renderer.domElement.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera({ x, y }, camera);
+  const meshes = [];
+  toothGroup.traverse(o => { if (o.isMesh) meshes.push(o); });
+  const hits = raycaster.intersectObjects(meshes, false);
+  if (hits.length > 0) {
+    placeMarker(hits[0].point, activeMode);
+    const next = ORDER.find(t => !markers[t]);
+    if (next) {
+      const btn = document.querySelector(`.mode button[data-type="${next}"]`);
+      document.querySelectorAll('.mode button').forEach(x => x.classList.remove('on'));
+      btn.classList.add('on');
+      activeMode = next;
+      document.getElementById('verdict').textContent = 'Now mark ' + next;
+    } else {
+      activeMode = null;
+      document.querySelectorAll('.mode button').forEach(x => x.classList.remove('on'));
+      document.getElementById('verdict').textContent = 'All four placed — tap Check answers';
+    }
+  }
+}
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  const sx = e.clientX, sy = e.clientY;
+  const up = u => {
+    renderer.domElement.removeEventListener('pointerup', up);
+    if (Math.hypot(u.clientX - sx, u.clientY - sy) < 8) onTap(e);
+  };
+  renderer.domElement.addEventListener('pointerup', up);
+});
+
+// ──────────────────────────────────────────────────────────────
+// CHECK
+// ──────────────────────────────────────────────────────────────
+function yNorm(worldY) {
+  if (!zones) return 0;
+  return (worldY - zones.yMin) / zones.height;
+}
+
+document.getElementById('checkBtn').onclick = () => {
+  if (!zones) return;
+  const results = {};
+  ORDER.forEach(type => {
+    const m = markers[type];
+    if (!m) { results[type] = null; return; }
+    const n = yNorm(m.getWorldPosition(new THREE.Vector3()).y);
+    const z = zones[type + 'Min'] !== undefined
+      ? {min: zones[type + 'Min'], max: zones[type + 'Max']}
+      : null;
+    if (z) results[type] = (n >= z.min && n <= z.max);
+    else results[type] = false;
+  });
+  ORDER.forEach(type => {
+    const el = document.querySelector(`.result[data-r="${type}"]`);
+    const r = results[type];
+    if (r === null)      { el.textContent = 'not placed'; el.className = 'result wait'; }
+    else if (r)          { el.textContent = '✓ correct'; el.className = 'result ok'; }
+    else                 { el.textContent = '✗ outside'; el.className = 'result no'; }
+  });
+  const ok = ORDER.filter(t => results[t]).length;
+  const v = document.getElementById('verdict');
+  if (ok === 4)     { v.textContent = 'All four correct'; v.className = 'verdict win'; }
+  else if (ok > 0)  { v.textContent = ok + ' of 4 correct — adjust and retry'; v.className = 'verdict partial'; }
+  else              { v.textContent = 'Try again'; v.className = 'verdict none'; }
+};
+
+function resetMarkers() {
+  ORDER.forEach(t => {
+    if (markers[t]) {
+      toothGroup.remove(markers[t]);
+      if (markers[t].material) {
+        if (markers[t].material.map) markers[t].material.map.dispose();
+        markers[t].material.dispose();
+      }
+      markers[t] = null;
+    }
+    const el = document.querySelector(`.result[data-r="${t}"]`);
+    if (el) { el.textContent = '—'; el.className = 'result wait'; }
+  });
+  activeMode = null;
+  document.querySelectorAll('.mode button').forEach(x => x.classList.remove('on'));
+  const v = document.getElementById('verdict');
+  if (v) { v.textContent = 'Place four dots, then check'; v.className = 'verdict none'; }
+}
+document.getElementById('resetBtn').onclick = resetMarkers;
+
+document.querySelectorAll('.mode button').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.mode button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    activeMode = b.dataset.type;
+    document.getElementById('verdict').textContent = 'Tap the ' + activeMode + ' on the tooth';
+    document.getElementById('verdict').className = 'verdict none';
+  };
+});
+
+function buildPicker() {
+  const pg = document.createElement('optgroup'); pg.label = 'Primary';
+  const mg = document.createElement('optgroup'); mg.label = 'Permanent';
+  Object.entries(CATALOG).forEach(([k, v]) => {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = v.fdi + ' — ' + v.name;
+    (v.type === 'primary' ? pg : mg).appendChild(o);
+  });
+  picker.appendChild(pg); picker.appendChild(mg);
+  picker.value = 'mandibular_first_molar';
+}
+picker.onchange = () => loadTooth(picker.value);
+
+window.addEventListener('resize', () => {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+});
+
+let autoSpin = true;
+renderer.domElement.addEventListener('pointerdown', () => { autoSpin = false; });
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (autoSpin && toothGroup.children.length) toothGroup.rotation.y += 0.003;
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+buildPicker();
+loadTooth('mandibular_first_molar');
+</script>
+
+</body></html>

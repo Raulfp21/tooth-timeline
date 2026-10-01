@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Viva Essentials</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;padding:12px;margin:0;font-size:13px;line-height:1.5}
+.nav{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.nav a{padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+h1{font-size:17px;margin:0 0 4px}
+h2{font-size:14px;margin:22px 0 8px;color:#d2a8ff;border-bottom:1px solid #30363d;padding-bottom:5px}
+h3{font-size:12.5px;margin:14px 0 6px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.card{background:#161b22;border-radius:10px;padding:12px;margin:8px 0}
+.code-big{font-family:ui-monospace,Menlo,monospace;font-size:24px;font-weight:700;letter-spacing:2px;padding:8px 12px;border-radius:8px;display:inline-block;background:#0d1117;border:1px solid #30363d}
+.code-big .a{color:#58a6ff}
+.code-big .b{color:#3fb950}
+.q-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.q-cell{background:#0d1117;border-radius:8px;padding:8px 10px;border-left:3px solid}
+.q-cell.q1{border-color:#58a6ff}.q-cell.q2{border-color:#3fb950}
+.q-cell.q3{border-color:#f0883e}.q-cell.q4{border-color:#d2a8ff}
+.q-cell.q5,.q-cell.q6,.q-cell.q7,.q-cell.q8{border-color:#8b949e}
+.q-cell .num{font-size:18px;font-weight:700;line-height:1;margin-bottom:2px}
+.q-cell.q1 .num{color:#58a6ff}.q-cell.q2 .num{color:#3fb950}
+.q-cell.q3 .num{color:#f0883e}.q-cell.q4 .num{color:#d2a8ff}
+.q-cell.q5 .num,.q-cell.q6 .num,.q-cell.q7 .num,.q-cell.q8 .num{color:#8b949e}
+.q-cell .desc{font-size:11px;color:#c9d1d9;line-height:1.35}
+.q-cell .tag{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.arch-row{display:flex;align-items:center;gap:3px;overflow-x:auto;padding:3px 0;scrollbar-width:none}
+.arch-row::-webkit-scrollbar{display:none}
+.arch-lbl{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 2px}
+.t{width:32px;height:34px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex-shrink:0;cursor:pointer;border:1.5px solid transparent;transition:all .12s}
+.t:active{transform:scale(.92)}
+.t.succ{background:rgba(88,166,255,.22);color:#58a6ff}
+.t.super{background:rgba(240,136,62,.22);color:#f0883e}
+.t.prim{background:rgba(140,140,140,.18);color:#8b949e}
+.midline{width:2px;background:#d2a8ff;align-self:stretch;margin:0 4px;border-radius:1px;flex-shrink:0}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#8b949e;margin-top:8px}
+.legend span{display:flex;align-items:center;gap:5px}
+.sw{width:12px;height:12px;border-radius:3px}
+.sw.succ{background:rgba(88,166,255,.5)}
+.sw.super{background:rgba(240,136,62,.5)}
+.sw.prim{background:rgba(140,140,140,.5)}
+#detail{margin-top:10px;background:#0d1117;border-radius:8px;padding:12px;font-size:12px;min-height:60px;line-height:1.5}
+#detail .fdi{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;color:#0d1117;margin-right:6px}
+#detail .fdi.succ{background:#58a6ff}
+#detail .fdi.super{background:#f0883e}
+#detail .fdi.prim{background:#8b949e}
+.ask-box .fdi-big{font-family:ui-monospace,Menlo,monospace;font-size:22px;font-weight:700;color:#d2a8ff;letter-spacing:1px;margin-bottom:6px}
+.ask-box .prompt{font-size:12px;color:#8b949e;margin-bottom:8px}
+.ask-box input{width:100%;padding:10px;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:6px;font-size:14px;font-family:inherit;margin-bottom:8px;-webkit-appearance:none}
+.ask-box input:focus{outline:none;border-color:#d2a8ff}
+.ask-box .row{display:flex;gap:6px}
+.ask-box button{flex:1;padding:10px;border-radius:6px;border:none;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.ask-box .check{background:#3fb950;color:#0d1117}
+.ask-box .reveal{background:#161b22;color:#e6edf3;border:1px solid #30363d}
+.ask-box .result{margin-top:10px;padding:8px 10px;border-radius:6px;font-size:12.5px;line-height:1.5;display:none}
+.ask-box .result.show{display:block}
+.ask-box .result.ok{background:rgba(63,185,80,.15);color:#3fb950;border-left:3px solid #3fb950}
+.ask-box .result.no{background:rgba(240,136,62,.15);color:#f0883e;border-left:3px solid #f0883e}
+.ask-box .result strong{color:#e6edf3}
+.ask-box .hintline{font-size:11px;color:#8b949e;margin-top:8px}
+.quiz-q{background:#0d1117;border-radius:8px;padding:10px;margin-bottom:8px}
+.quiz-q .q{font-weight:600;margin-bottom:8px;font-size:12.5px}
+.quiz-q .opts{display:flex;flex-direction:column;gap:5px}
+.quiz-q .opt{padding:8px 10px;background:#161b22;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;color:#e6edf3;text-align:left}
+.quiz-q .opt.correct{background:rgba(63,185,80,.25);border-color:#3fb950;color:#3fb950;font-weight:600}
+.quiz-q .opt.wrong{background:rgba(240,136,62,.2);border-color:#f0883e;color:#f0883e}
+.quiz-q .explain{margin-top:8px;padding:8px;background:rgba(210,168,255,.08);border-radius:6px;font-size:11.5px;color:#c9d1d9;line-height:1.5;display:none}
+.quiz-q .explain.on{display:block}
+.score{margin-top:12px;text-align:center;font-weight:700;font-size:14px;padding:10px;border-radius:8px;background:#161b22}
+.score.good{background:rgba(63,185,80,.2);color:#3fb950}
+.trick{background:linear-gradient(135deg,rgba(210,168,255,.12),rgba(88,166,255,.12));border-left:3px solid #d2a8ff;border-radius:8px;padding:12px;margin-bottom:12px}
+.trick p{margin:6px 0;font-size:13px}
+.trick strong.s{color:#58a6ff}
+.trick strong.p{color:#f0883e}
+.trick em{color:#d2a8ff;font-style:normal;font-weight:600}
+.mnemo{background:#0d1117;border-radius:8px;padding:10px;margin-top:8px;font-size:12px;line-height:1.6}
+.mnemo .bullet{display:flex;gap:8px;margin-bottom:6px}
+.mnemo .bullet .icon{color:#d2a8ff;font-weight:700;flex-shrink:0;min-width:20px}
+.mnemo strong{color:#d2a8ff}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html" class="active">Viva</a>
+</div>
+
+<h1>Viva Essentials</h1>
+<div class="sub">FDI notation and tooth categories.</div>
+
+<h2>Part 1 · FDI Notation</h2>
+
+<div class="card" style="text-align:center">
+<p style="margin:0 0 8px;font-size:12.5px">Each FDI number has <strong>two digits</strong>:</p>
+<div class="code-big"><span class="a">2</span><span class="b">1</span></div>
+<p style="font-size:11px;color:#8b949e;margin:8px 0 0">
+<span style="color:#58a6ff;font-weight:600">First digit</span> = quadrant · <span style="color:#3fb950;font-weight:600">Second digit</span> = tooth
+</p>
+</div>
+
+<h3>First digit — quadrant (counted clockwise from patient's upper right)</h3>
+<div class="q-grid">
+<div class="q-cell q1"><div class="num">1</div><div class="desc">Upper <strong>Right</strong></div><div class="tag">Permanent</div></div>
+<div class="q-cell q2"><div class="num">2</div><div class="desc">Upper <strong>Left</strong></div><div class="tag">Permanent</div></div>
+<div class="q-cell q3"><div class="num">3</div><div class="desc">Lower <strong>Left</strong></div><div class="tag">Permanent</div></div>
+<div class="q-cell q4"><div class="num">4</div><div class="desc">Lower <strong>Right</strong></div><div class="tag">Permanent</div></div>
+<div class="q-cell q5"><div class="num">5</div><div class="desc">Upper Right <em>(primary)</em></div><div class="tag">Primary</div></div>
+<div class="q-cell q6"><div class="num">6</div><div class="desc">Upper Left <em>(primary)</em></div><div class="tag">Primary</div></div>
+<div class="q-cell q7"><div class="num">7</div><div class="desc">Lower Left <em>(primary)</em></div><div class="tag">Primary</div></div>
+<div class="q-cell q8"><div class="num">8</div><div class="desc">Lower Right <em>(primary)</em></div><div class="tag">Primary</div></div>
+</div>
+<p style="font-size:11.5px;color:#8b949e;margin-top:6px"><strong>Memory aid:</strong> 1–4 = permanent teeth. 5–8 = primary teeth. Same sequence, shifted by +4.</p>
+
+<h3>Second digit — tooth position (from midline outward)</h3>
+<div class="q-grid">
+<div class="q-cell q1">
+<div style="font-size:10px;color:#3fb950;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Permanent — 1 to 8</div>
+<div style="font-size:11.5px;line-height:1.6;color:#c9d1d9">
+1 Central Incisor<br>2 Lateral Incisor<br>3 Canine<br>4 First Premolar<br>5 Second Premolar<br>6 First Molar<br>7 Second Molar<br>8 Third Molar</div>
+</div>
+<div class="q-cell q5">
+<div style="font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Primary — 1 to 5</div>
+<div style="font-size:11.5px;line-height:1.6;color:#c9d1d9">
+1 Central Incisor<br>2 Lateral Incisor<br>3 Canine<br>4 First Molar<br>5 Second Molar<br>
+<span style="color:#484f58">— no premolars —</span><br>
+<span style="color:#484f58">— no third molars —</span></div>
+</div>
+</div>
+
+<h3>Worked examples</h3>
+<div class="card" style="background:#0d1117;font-size:12.5px;line-height:1.7">
+<div><span class="code-big" style="font-size:16px;padding:2px 8px"><span class="a">1</span><span class="b">1</span></span> → Upper Right · Central Incisor = <strong>Upper Right Central Incisor</strong></div>
+<div style="margin-top:6px"><span class="code-big" style="font-size:16px;padding:2px 8px"><span class="a">3</span><span class="b">6</span></span> → Lower Left · First Molar = <strong>Lower Left First Molar</strong></div>
+<div style="margin-top:6px"><span class="code-big" style="font-size:16px;padding:2px 8px"><span class="a">6</span><span class="b">1</span></span> → Upper Left <em>primary</em> · Central Incisor = <strong>Primary Upper Left Central Incisor</strong></div>
+<div style="margin-top:6px"><span class="code-big" style="font-size:16px;padding:2px 8px"><span class="a">7</span><span class="b">5</span></span> → Lower Left <em>primary</em> · Second Molar = <strong>Primary Lower Left Second Molar</strong></div>
+</div>
+
+<h3>Study the grid</h3>
+<div class="card" style="background:#0d1117;padding:10px">
+<p style="margin:0;font-size:12px;line-height:1.55;color:#c9d1d9">
+<strong style="color:#58a6ff">Right of midline (FDI 2·3·6·7)</strong> — tap any tooth → answer shown.
+<br><strong style="color:#f0883e">Left of midline (FDI 1·4·5·8)</strong> — tap any tooth → type the name.
+</p>
+</div>
+
+<div class="card">
+<div class="arch-lbl">Permanent — Upper</div>
+<div class="arch-row" id="permUpper"></div>
+<div class="arch-lbl">Permanent — Lower</div>
+<div class="arch-row" id="permLower"></div>
+<div class="arch-lbl">Primary — Upper</div>
+<div class="arch-row" id="primUpper"></div>
+<div class="arch-lbl">Primary — Lower</div>
+<div class="arch-row" id="primLower"></div>
+<div id="detail">Tap any tooth above.</div>
+</div>
+
+<h2>Part 2 · Superadded vs Successional</h2>
+<div class="trick">
+<p><strong class="s">SUCCESSIONAL</strong> — <em>succeed</em> (replace) a milk tooth. Predecessor existed.</p>
+<p><strong class="p">SUPERADDED</strong> — <em>super</em> (extra). Erupt <em>behind</em> the row. No predecessor.</p>
+<p style="color:#d2a8ff;font-weight:600;margin-top:10px">Only permanent teeth divide this way. Primary teeth are simply "primary" — never superadded.</p>
+</div>
+<div class="card">
+<div class="mnemo">
+<div class="bullet"><span class="icon">1.</span><div><strong>Word cue.</strong> Successional → <em>succeed</em> → replaces. Superadded → <em>extra</em> → added at back.</div></div>
+<div class="bullet"><span class="icon">2.</span><div><strong>Numbers.</strong> 5 successional per quadrant (I·I·C·PM·PM) = 20. 3 superadded per quadrant (M·M·M) = 12.</div></div>
+<div class="bullet"><span class="icon">3.</span><div><strong>One-line test.</strong> Did a milk tooth fall out to make room? Yes → successional. No → superadded.</div></div>
+</div>
+</div>
+
+<h3>Quick check</h3>
+<div id="quiz"></div>
+<div class="score" id="score">Answer to see score</div>
+
+<script>
+var TOOTH_NAME = {1:'Central Incisor',2:'Lateral Incisor',3:'Canine',4:'First Premolar',5:'Second Premolar',6:'First Molar',7:'Second Molar',8:'Third Molar'};
+var PRIM_TOOTH_NAME = {1:'Central Incisor',2:'Lateral Incisor',3:'Canine',4:'First Molar',5:'Second Molar'};
+var QUAD_NAME = {
+  1:'Upper Right',2:'Upper Left',3:'Lower Left',4:'Lower Right',
+  5:'Upper Right (Primary)',6:'Upper Left (Primary)',
+  7:'Lower Left (Primary)',8:'Lower Right (Primary)'
+};
+
+function classify(fdi) {
+  var q = Math.floor(fdi/10), n = fdi % 10;
+  var isPrimary = q >= 5;
+  var isSuper = !isPrimary && n >= 6;
+  var type;
+  if (isPrimary) type = 'prim';
+  else if (isSuper) type = 'super';
+  else type = 'succ';
+  return {
+    q: q, n: n, isPrimary: isPrimary, type: type,
+    quadrant: QUAD_NAME[q],
+    tooth: isPrimary ? PRIM_TOOTH_NAME[n] : TOOTH_NAME[n]
+  };
+}
+
+function buildRow(id, fdis) {
+  var row = document.getElementById(id);
+  var done = false;
+  fdis.forEach(function(f) {
+    var c = classify(f);
+    if (!done && (f % 10) === 1 && ['2','3','6','7'].indexOf(String(c.q)) >= 0) {
+      row.insertAdjacentHTML('beforeend', '<div class="midline"></div>');
+      done = true;
+    }
+    var t = document.createElement('div');
+    t.className = 't ' + c.type;
+    t.dataset.fdi = f;
+    t.textContent = f;
+    t.onclick = function() { showFDI(f, c); };
+    row.appendChild(t);
+  });
+}
+
+function showFDI(f, c) {
+  var q = Number(c.q);
+  var isPractice = (q === 1 || q === 4 || q === 5 || q === 8);
+  var det = document.getElementById('detail');
+
+  if (isPractice) {
+    det.innerHTML = '<div class="ask-box">' +
+      '<div class="fdi-big">FDI ' + f + '</div>' +
+      '<div class="prompt">Type the full name of this tooth:</div>' +
+      '<input id="answerInput" type="text" placeholder="e.g. upper right central incisor" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">' +
+      '<div class="row"><button class="check" id="checkAnsBtn">Check answer</button><button class="reveal" id="revealBtn">Reveal</button></div>' +
+      '<div class="result" id="ansResult"></div>' +
+      '<div class="hintline">Include quadrant (upper/lower), side (right/left), and tooth type</div>' +
+      '</div>';
+    setTimeout(function() {
+      var inp = document.getElementById('answerInput');
+      var cb = document.getElementById('checkAnsBtn');
+      var rb = document.getElementById('revealBtn');
+
+      if (inp) {
+        inp.focus();
+        inp.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') checkAnswer(c);
+        });
+      }
+
+      if (cb) {
+        cb.addEventListener('pointerdown', function(e) {
+          checkAnswer(c);
+        });
+        cb.addEventListener('click', function(e) {
+          if (e.detail === 0) checkAnswer(c);
+        });
+      }
+
+      function doReveal() {
+        var inp = document.getElementById('answerInput');
+        var typed = inp ? inp.value.trim() : '';
+        var r = document.getElementById('ansResult');
+        if (!typed) {
+          r.className = 'result show no';
+          r.innerHTML = '<strong>Type your answer first.</strong> Attempt the question before revealing.';
+          return;
+        }
+        r.className = 'result show ok';
+        r.innerHTML = '<strong>Answer:</strong> ' + c.quadrant + ' ' + c.tooth;
+      }
+
+      if (rb) {
+        rb.addEventListener('pointerdown', function(e) {
+          doReveal();
+        });
+        rb.addEventListener('click', function(e) {
+          if (e.detail === 0) doReveal();
+        });
+      }
+    }, 50);
+    return;
+  }
+
+  var colorClass = c.type;
+  var colorName = c.type === 'succ' ? '#58a6ff' : (c.type === 'super' ? '#f0883e' : '#8b949e');
+  var tagText = c.isPrimary ? 'Primary (deciduous)' : (c.type === 'succ' ? 'Permanent · Successional' : 'Permanent · Superadded');
+  det.innerHTML = '<span class="fdi ' + colorClass + '">FDI ' + f + '</span><strong>' + c.quadrant + ' ' + c.tooth + '</strong>' +
+    '<br><span style="color:' + colorName + ';font-weight:600">' + tagText + '</span>' +
+    '<br><br>' +
+    '<span style="font-size:11.5px;color:#8b949e"><span style="color:#58a6ff;font-weight:600">First digit ' + c.q + '</span> = ' + c.quadrant + ' · <span style="color:#3fb950;font-weight:600">Second digit ' + c.n + '</span> = ' + c.tooth + '</span>';
+}
+
+function checkAnswer(c) {
+  var raw = document.getElementById('answerInput').value;
+  var ans = String(raw).toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  var result = document.getElementById('ansResult');
+  if (!ans) { result.className = 'result show no'; result.innerHTML = 'Please type an answer.'; return; }
+  var req = [];
+  var ql = c.quadrant.toLowerCase();
+  if (ql.indexOf('upper') >= 0) req.push('upper');
+  else if (ql.indexOf('lower') >= 0) req.push('lower');
+  if (ql.indexOf('right') >= 0) req.push('right');
+  else if (ql.indexOf('left') >= 0) req.push('left');
+  var t = c.tooth.toLowerCase();
+  if (t.indexOf('central') >= 0) req.push('central');
+  else if (t.indexOf('lateral') >= 0) req.push('lateral');
+  else if (t.indexOf('canine') >= 0) req.push('canine');
+  else if (t.indexOf('premolar') >= 0) req.push('premolar');
+  else if (t.indexOf('molar') >= 0) req.push('molar');
+  var missing = req.filter(function(x) { return ans.indexOf(x) < 0; });
+  if (missing.length === 0) {
+    result.className = 'result show ok';
+    result.innerHTML = '<strong>✓ Correct.</strong> ' + c.quadrant + ' ' + c.tooth;
+  } else {
+    var hints = missing.map(function(m) {
+      if (m === 'upper' || m === 'lower') return 'jaw (upper/lower)';
+      if (m === 'right' || m === 'left') return 'side (right/left)';
+      return 'tooth type';
+    });
+    result.className = 'result show no';
+    result.innerHTML = '<strong>✗ Not quite.</strong> Missing: ' + hints.join(', ') + '<br><span style="color:#8b949e;font-size:11.5px">Correct: ' + c.quadrant + ' ' + c.tooth + '</span>';
+  }
+}
+
+buildRow('permUpper', [18,17,16,15,14,13,12,11,21,22,23,24,25,26,27,28]);
+buildRow('permLower', [48,47,46,45,44,43,42,41,31,32,33,34,35,36,37,38]);
+buildRow('primUpper', [55,54,53,52,51,61,62,63,64,65]);
+buildRow('primLower', [85,84,83,82,81,71,72,73,74,75]);
+
+var QUIZ = [
+  {q:'What does the FIRST digit of FDI 36 mean?', opts:['Third tooth from midline','Lower left quadrant','Upper right quadrant','Third primary tooth'], correct:1, why:'First digit is the quadrant. Quadrant 3 = Lower Left. The second digit (6) is the First Molar.'},
+  {q:'What does the SECOND digit of FDI 62 mean?', opts:['Quadrant 2','Lateral Incisor','First Molar','Central Incisor'], correct:1, why:'First digit 6 = Upper Left primary quadrant. Second digit 2 = Lateral Incisor. So FDI 62 = Primary Upper Left Lateral Incisor.'},
+  {q:'Which permanent teeth are SUPERADDED?', opts:['Only first molars','All three molars (first, second, third)','The premolars','Incisors and canines'], correct:1, why:'All permanent molars — no deciduous predecessor. 3 per quadrant × 4 = 12 total. Primary teeth are never classified as superadded.'},
+  {q:'Premolars are which category?', opts:['Superadded — they are new','Successional — they replace primary molars','Neither','Both depending on jaw'], correct:1, why:'The common viva trap. Premolars sound new, but each erupts in the space of a primary molar. Predecessor existed → SUCCESSIONAL.'}
+];
+
+var answered = 0, correct = 0;
+function renderQuiz() {
+  var root = document.getElementById('quiz');
+  root.innerHTML = '';
+  QUIZ.forEach(function(item, i) {
+    var div = document.createElement('div');
+    div.className = 'quiz-q';
+    div.innerHTML = '<div class="q">Q' + (i+1) + '. ' + item.q + '</div>';
+    var opts = document.createElement('div');
+    opts.className = 'opts';
+    item.opts.forEach(function(o, j) {
+      var b = document.createElement('button');
+      b.className = 'opt';
+      b.textContent = o;
+      b.onclick = function() {
+        if (div.dataset.done) return;
+        div.dataset.done = '1';
+        answered++;
+        var isRight = (j === item.correct);
+        if (isRight) correct++;
+        opts.querySelectorAll('.opt').forEach(function(bb, k) {
+          if (k === item.correct) bb.classList.add('correct');
+          else if (k === j) bb.classList.add('wrong');
+          bb.disabled = true;
+        });
+        var ex = document.createElement('div');
+        ex.className = 'explain on';
+        ex.innerHTML = '<strong>' + (isRight ? '✓ Correct.' : '✗ Not quite.') + '</strong> ' + item.why;
+        div.appendChild(ex);
+        updateScore();
+      };
+      opts.appendChild(b);
+    });
+    div.appendChild(opts);
+    root.appendChild(div);
+  });
+}
+function updateScore() {
+  var el = document.getElementById('score');
+  el.textContent = 'Answered ' + answered + ' of ' + QUIZ.length + ' — score ' + correct + '/' + answered;
+  el.className = 'score ' + ((correct === answered && answered === QUIZ.length) ? 'good' : '');
+}
+renderQuiz();
+</script>
+</body></html>
