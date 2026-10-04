@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Periodontosis — Real Teeth</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.nav{display:flex;gap:5px;padding:10px;flex-wrap:wrap;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:10}
+.nav a{padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.wrap{padding:12px;max-width:960px;margin:0 auto}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.viewer{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;height:40vh;min-height:300px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.viewer .hint{position:absolute;top:8px;left:10px;font-size:10px;color:#8b949e;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none;z-index:2}
+.viewer .legend{position:absolute;bottom:8px;right:10px;font-size:9px;color:#8b949e;background:rgba(0,0,0,.55);padding:6px 9px;border-radius:4px;pointer-events:none;z-index:2;line-height:1.6}
+.viewer .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.viewer .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b949e;font-size:12px;background:rgba(13,17,23,.7);pointer-events:none}
+.controls{background:#161b22;border-radius:10px;padding:14px;margin-top:12px}
+.ctrl-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ctrl-title .name{font-size:15px;font-weight:700;color:#e88a8a}
+.ctrl-title .val{font-size:13px;color:#d2a8ff;font-weight:700}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:24px;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:5px;background:#30363d;border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#e88a8a;border:2px solid #0d1117;margin-top:-9px;cursor:pointer}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:#484f58;padding:2px 2px 0}
+.stage-info{margin-top:10px;padding:10px;background:#0d1117;border-radius:8px;font-size:12.5px;line-height:1.55;color:#c9d1d9;min-height:70px}
+.stage-info strong{color:#e88a8a}
+.stage-info .meta{margin-top:4px;font-size:11px;color:#8b949e}
+.presets{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.presets button{flex:1;min-width:55px;padding:8px 4px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.presets button:active{background:#e88a8a;color:#0d1117}
+.presets button.wide{flex-basis:100%}
+.presets button.on{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html">Viva</a>
+<a href="gustafson.html">Gustafson</a>
+<a href="attrition.html">Attrition</a>
+<a href="periodontosis.html" class="active">Periodontosis</a>
+<a href="secondary.html">Secondary dentin</a>
+<a href="resorption.html">Root resorption</a>
+<a href="assignments.html">Exam</a>
+<a href="clinic.html">Clinic</a>
+</div>
+
+<div class="wrap">
+<h1>Periodontosis — Lower Incisors</h1>
+<div class="sub">Drag the slider. Watch the gum margin recede down the neck, exposing root.</div>
+
+<div class="viewer" id="viewer">
+  <div class="hint">drag to rotate · pinch to zoom</div>
+  <div class="legend">
+    <i style="background:#f4f0e4"></i>Enamel<br>
+    <i style="background:#e0c070"></i>Root (cementum)<br>
+    <i style="background:#ee9fa4"></i>Gingiva<br>
+    <i style="background:#c9626e"></i>Alveolar mucosa<br>
+    <i style="background:#f3e7cf"></i>Bone (X-ray)<br>
+    <i style="background:#fff"></i>Bone crest<br>
+    <i style="background:#f2cc60"></i>Original crest<br>
+    <i style="background:#e3c070"></i>Dentin (section)<br>
+    <i style="background:#c8505a"></i>Pulp (section)
+  </div>
+  <div class="loading" id="loading">Loading teeth…</div>
+</div>
+
+<div class="controls">
+  <div class="ctrl-title">
+    <span class="name">P — Periodontosis</span>
+    <span class="val" id="valDisplay">0 / 3</span>
+  </div>
+  <input type="range" min="0" max="3" step="1" value="0" id="slider">
+  <div class="scale"><span>0 · none</span><span>1 · begin</span><span>2 · obvious</span><span>3 · max</span></div>
+  <div class="stage-info" id="stageInfo"></div>
+  <div class="presets">
+    <button data-v="0">Young</button>
+    <button data-v="1">Early</button>
+    <button data-v="2">Middle</button>
+    <button data-v="3">Advanced</button>
+    <button class="wide" id="xrayBtn">◐ X-ray: show roots and bone</button>
+    <button class="wide" id="secBtn">✂ Section: cut through the lateral incisor</button>
+  </div>
+</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+    "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const FOLDER = './models/';
+
+// x = position along the arch. crown = fraction of tooth height that is crown
+// (where the gum margin sits at stage 0). If yellow root shows above the gum at
+// stage 0, lower `crown`; if white crown is buried, raise it.
+const TEETH = [
+  { file: 'mandibular_left_central_incisor', x: -0.56, crown: 0.46 },
+  { file: 'mandibular_left_lateral_incisor', x:  0.00, crown: 0.46 },
+  { file: 'mandibular_left_canine',          x:  0.58, crown: 0.42 },
+];
+
+// Fraction of the ROOT exposed at each stage
+const EXPOSE = [0, 0.15, 0.35, 0.60];
+
+const MESSAGES = [
+  '<strong>Stage 0 — no change.</strong> Gum margin sits at the crown-root junction. Full crown visible, root buried in bone.',
+  '<strong>Stage 1 — beginning.</strong> Slight gingival recession. The neck of the tooth is beginning to show — a thin band of yellow root appears.',
+  '<strong>Stage 2 — obvious.</strong> Clear gum recession. Substantial part of the root is exposed above the gum line. The tooth may feel slightly loose.',
+  '<strong>Stage 3 — maximum.</strong> Severe recession. Most of the root is exposed. Teeth are noticeably loose and may be at risk of exfoliation.',
+];
+
+// ═══ SCENE ═══
+const viewer = document.getElementById('viewer');
+const loading = document.getElementById('loading');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, stencil: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+renderer.localClippingEnabled = true;
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, viewer.clientWidth / viewer.clientHeight, 0.01, 200);
+camera.position.set(0.4, 0.5, 3.7);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.target.set(0, -0.1, 0);
+controls.minDistance = 2;
+controls.maxDistance = 9;
+controls.minPolarAngle = 0.2;
+controls.maxPolarAngle = Math.PI / 2;     // never look from underneath
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a6a6a, 0.35));
+const key = new THREE.DirectionalLight(0xffffff, 1.15);
+key.position.set(2, 5, 4); scene.add(key);
+const fill = new THREE.DirectionalLight(0xaaccff, 0.5);
+fill.position.set(-4, 1, -2); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffccaa, 0.35);
+rim.position.set(0, -3, -3); scene.add(rim);
+
+const loader = new GLTFLoader();
+const toothGroup = new THREE.Group();
+scene.add(toothGroup);
+
+// ═══ GUM + BONE RIDGE ═══
+// A ridge running along the arch. Its cross-section is a half-ellipse, its crest
+// height follows a scalloped curve (low at each tooth, high in the papillae
+// between teeth), and the ends taper off. Rebuilt in place as the slider moves.
+const NX = 150, NS = 28;
+const clamp01 = t => Math.min(1, Math.max(0, t));
+const sm = t => { t = clamp01(t); return t * t * (3 - 2 * t); };
+
+function makeRidge(mat) {
+  const geo = new THREE.BufferGeometry();
+  const n = (NX + 1) * (NS + 1);
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+  const idx = new Uint16Array(NX * NS * 6);
+  let k = 0;
+  for (let i = 0; i < NX; i++) for (let j = 0; j < NS; j++) {
+    const a = i * (NS + 1) + j, b = a + 1, c = a + NS + 1, d = c + 1;
+    idx.set([a, b, c, b, d, c], k); k += 6;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+  return { mesh, geo, pos, col };
+}
+
+const tmpC = new THREE.Color();
+function fillRidge(r, topFn, K, R, yb, xa, xb, colorFn) {
+  const L = (xb - xa) / 2, xm = (xa + xb) / 2;
+  let p = 0;
+  for (let i = 0; i <= NX; i++) {
+    const x = xa + (xb - xa) * i / NX;
+    const u = (x - xm) / L;
+    const e = Math.sqrt(Math.max(0, 1 - Math.pow(Math.abs(u), 8)));   // rounded ends
+    const H = Math.max(0.001, topFn(x) - yb) * K * e;
+    const vmY = yb + H / K;            // where the margin meets the labial tooth surface
+    const Rr = R * e;
+    for (let j = 0; j <= NS; j++) {
+      const phi = -Math.PI / 2 + Math.PI * j / NS;
+      const y = yb + H * Math.cos(phi);
+      r.pos[p] = x; r.pos[p + 1] = y; r.pos[p + 2] = Rr * Math.sin(phi);
+      colorFn(vmY - y, tmpC);
+      r.col[p] = tmpC.r; r.col[p + 1] = tmpC.g; r.col[p + 2] = tmpC.b;
+      p += 3;
+    }
+  }
+  r.geo.attributes.position.needsUpdate = true;
+  r.geo.attributes.color.needsUpdate = true;
+  r.geo.computeVertexNormals();
+}
+
+// Colours depend on depth below the gum margin, so the attached-gingiva band and
+// the mucogingival line travel down with the margin.
+const cGing = new THREE.Color(0xee9fa4), cMuc = new THREE.Color(0xc9626e);
+const cEdge = new THREE.Color(0xf8c2c4), cDeep = new THREE.Color(0xa24b58);
+function gumColor(d, out) {
+  out.copy(cGing).lerp(cMuc, sm((d - 0.30) / 0.05));
+  out.lerp(cEdge, 0.7 * (1 - clamp01(Math.abs(d) / 0.07)));
+  out.lerp(cDeep, 0.55 * clamp01((d - 0.5) / 0.6));
+}
+const cBoneTop = new THREE.Color(0xf6ecd6), cBoneDeep = new THREE.Color(0xd9c4a0);
+function boneColor(d, out) { out.copy(cBoneTop).lerp(cBoneDeep, clamp01(d / 1.0)); }
+
+const gumMat = new THREE.MeshPhysicalMaterial({
+  vertexColors: true, roughness: 0.5, clearcoat: 0.25, clearcoatRoughness: 0.5,
+});
+const boneMat = new THREE.MeshStandardMaterial({
+  vertexColors: true, roughness: 0.9, transparent: true, opacity: 0.42, depthWrite: false,
+});
+const gum = makeRidge(gumMat);
+const bone = makeRidge(boneMat);
+bone.mesh.renderOrder = 1; gum.mesh.renderOrder = 2;
+bone.mesh.visible = false;
+
+// scalloped crest curve: low at each tooth, papilla between teeth
+function ctrl(teeth, m, pap) {
+  const c = [[teeth[0].x - 0.5, m[0] + pap * 0.7]];
+  teeth.forEach((t, i) => {
+    c.push([t.x, m[i]]);
+    if (i < teeth.length - 1) c.push([(t.x + teeth[i + 1].x) / 2, (m[i] + m[i + 1]) / 2 + pap]);
+  });
+  c.push([teeth[teeth.length - 1].x + 0.5, m[m.length - 1] + pap * 0.7]);
+  return c;
+}
+function evalCtrl(c, x) {
+  if (x <= c[0][0]) return c[0][1];
+  for (let k = 0; k < c.length - 1; k++) {
+    if (x <= c[k + 1][0]) {
+      const t = (x - c[k][0]) / (c[k + 1][0] - c[k][0]);
+      return c[k][1] + (c[k + 1][1] - c[k][1]) * (1 - Math.cos(Math.PI * t)) / 2;
+    }
+  }
+  return c[c.length - 1][1];
+}
+
+// ═══ TEETH ═══
+const teeth = [];
+let level = 0, expCur = 0, dirty = true, ready = false, xray = false;
+let G = null;   // ridge geometry parameters, set after the teeth load
+
+async function loadTeeth() {
+  for (const spec of TEETH) {
+    try {
+      const gltf = await new Promise((res, rej) =>
+        loader.load(FOLDER + spec.file + '.glb', res, undefined, rej));
+      const root = gltf.scene;
+
+      let box = new THREE.Box3().setFromObject(root);
+      const centre = box.getCenter(new THREE.Vector3());
+      root.position.sub(centre);
+      root.updateMatrixWorld(true);
+
+      box = new THREE.Box3().setFromObject(root);
+      const size = box.getSize(new THREE.Vector3());
+      const scale = 1.5 / Math.max(size.x, size.y, size.z);
+
+      const wrapper = new THREE.Group();
+      wrapper.add(root);
+      wrapper.scale.setScalar(scale);
+      wrapper.position.set(spec.x, 0, 0);       // straight row so the ridge hugs every tooth
+      toothGroup.add(wrapper);
+      const mats = [], backs = [], ligs = [], tmeshes = [];
+      root.traverse(o => { if (o.isMesh) tmeshes.push(o); });
+      tmeshes.forEach(m => {
+        (Array.isArray(m.material) ? m.material : [m.material]).forEach(mt => {
+          if (mt.color) mt.color.setRGB(CROWN_BOOST[0], CROWN_BOOST[1], CROWN_BOOST[2]);
+          if ('roughness' in mt) { mt.roughness = 0.42; mt.metalness = 0; }
+          mats.push(mt);
+        });
+        const bk = new THREE.Mesh(m.geometry, backMat);
+        bk.visible = false; bk.renderOrder = 3; m.add(bk); backs.push(bk);
+        const lg = new THREE.Mesh(m.geometry, ligMat);
+        lg.visible = false; lg.renderOrder = 2; lg.frustumCulled = false; lg.matrixAutoUpdate = false;
+        m.add(lg); ligs.push({ mesh: lg, m });
+      });
+      wrapper.updateMatrixWorld(true);
+
+      const wb = new THREE.Box3().setFromObject(wrapper);
+      const totalH = wb.max.y - wb.min.y;
+      const J = wb.max.y - totalH * spec.crown;          // crown-root junction
+      teeth.push({
+        wrapper, x: spec.x, J, bottom: wb.min.y, rootLen: J - wb.min.y, mats, backs, ligs, box: wb,
+        t: (wb.max.z - wb.min.z) / 2 * 0.8,              // approx. half-thickness at the neck
+      });
+    } catch (e) {
+      console.error('Failed to load', spec.file, e);
+    }
+  }
+  if (!teeth.length) { loading.textContent = 'Could not load teeth — check ./models/'; return; }
+  loading.style.display = 'none';
+
+  const tMax = Math.max(...teeth.map(t => t.t));
+  const tAvg = teeth.reduce((a, t) => a + t.t, 0) / teeth.length;
+  const yMin = Math.min(...teeth.map(t => t.bottom));
+  const Rg = tMax + 0.24, Rb = tMax + 0.11;
+  G = {
+    Rg, Rb,
+    Kg: 1 / Math.sqrt(1 - Math.pow(tAvg / Rg, 2)),
+    Kb: 1 / Math.sqrt(1 - Math.pow(tAvg / Rb, 2)),
+    ybG: yMin - 0.20, ybB: yMin - 0.14,
+    xa: teeth[0].x - 0.85, xb: teeth[teeth.length - 1].x + 0.85,
+  };
+  initSection();
+  ready = true;
+  setLevel(0);
+}
+
+function rebuild() {
+  const frac = expCur / EXPOSE[EXPOSE.length - 1];
+  const mG = teeth.map(t => t.J - expCur * t.rootLen);
+  const mB = teeth.map(t => t.J - 0.08 - 0.9 * expCur * t.rootLen);   // bone crest sits below the gum margin
+  const cg = ctrl(teeth, mG, 0.10 - 0.05 * frac);                      // papillae blunt with recession
+  const cb = ctrl(teeth, mB, 0.05);
+  fillRidge(gum, x => evalCtrl(cg, x), G.Kg, G.Rg, G.ybG, G.xa, G.xb, gumColor);
+  fillRidge(bone, x => evalCtrl(cb, x), G.Kb, G.Rb, G.ybB, G.xa, G.xb, boneColor);
+  updateExtras(cg, cb);
+}
+
+// ═══ UI ═══
+function setLevel(l) {
+  level = l;
+  document.getElementById('valDisplay').textContent = l + ' / 3';
+  document.getElementById('stageInfo').innerHTML =
+    MESSAGES[l] + '<div class="meta">Root exposed ≈ ' + Math.round(EXPOSE[l] * 100) + '%</div>';
+}
+
+const xrayBtn = document.getElementById('xrayBtn');
+function applyXray() {
+  gumMat.transparent = xray;
+  gumMat.opacity = xray ? 0.26 : 1;
+  gumMat.depthWrite = !xray;
+  gumMat.needsUpdate = true;
+  bone.mesh.visible = xray;
+  xrayBtn.classList.toggle('on', xray);
+  xrayBtn.textContent = xray ? '◐ X-ray ON: tap to hide' : '◐ X-ray: show roots and bone';
+}
+xrayBtn.onclick = () => { if (section) { section = false; goCam(camHome, tgHome); } xray = !xray; applyModes(); };
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input', () => setLevel(parseInt(slider.value, 10)));
+document.querySelectorAll('.presets button[data-v]').forEach(b => {
+  b.onclick = () => { const v = parseInt(b.dataset.v, 10); slider.value = v; setLevel(v); };
+});
+
+window.addEventListener('resize', () => {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+// ═══ SECTION MODE + CREST LINES ═══
+const CROWN_BOOST = [1.35, 1.32, 1.22];    // raise to whiten the crowns, lower to darken
+const backMat = new THREE.MeshBasicMaterial({ color: 0xe3c070, side: THREE.BackSide, toneMapped: false,
+  stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp });
+const pulpMat = new THREE.MeshBasicMaterial({ color: 0xc8505a, side: THREE.DoubleSide, toneMapped: false });
+const LIG_XZ = 1.14, LIG_Y = 1.03;   // ligament gap: tooth outline enlarged 14% sideways, 3% lengthways
+const ligMat = new THREE.MeshBasicMaterial({ color: 0x6b4a40, side: THREE.BackSide, toneMapped: false,
+  stencilWrite: true, stencilRef: 2, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp });
+const LIG_T = 0.02;   // ligament thickness as a fraction of the tooth's bounding-box diagonal
+const ligUni = { value: 0.01 };
+ligMat.onBeforeCompile = sh => {
+  sh.uniforms.ligT = ligUni;
+  sh.vertexShader = 'uniform float ligT;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+    'vec3 transformed = position + normalize(normal) * ligT;');
+};
+const GUM_UP = -0.04;   // raise (e.g. 0.05) to let the gum cap stand above the bone crest
+const gumPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 99);
+const SLAB = 0.3;   // how far behind the cut the gum and bone are kept (same units as the model)
+const slabPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 99);   // keeps x <= cut + SLAB
+const ligPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 99);   // keeps y <= bone crest
+const pulp = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), pulpMat);
+pulp.visible = false; pulp.renderOrder = 4;
+const secPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);   // keeps x >= cut
+const capMat = c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide, toneMapped: false,
+  stencilWrite: true, stencilRef: 0, stencilFunc: THREE.EqualStencilFunc });
+const capGum = new THREE.Mesh(new THREE.BufferGeometry(), capMat(0xe08a92));
+const capCort = new THREE.Mesh(new THREE.BufferGeometry(), capMat(0xf2e6cc));
+const capCanc = new THREE.Mesh(new THREE.BufferGeometry(), capMat(0xcdb48a));
+const caps = [capGum, capCort, capCanc];
+caps.forEach(m => { m.visible = false; m.renderOrder = 5; m.rotation.y = -Math.PI / 2; scene.add(m); });
+const crestMat = new THREE.LineBasicMaterial({ color: 0xffffff, depthTest: false, transparent: true });
+const origMat = new THREE.LineDashedMaterial({ color: 0xf2cc60, dashSize: 0.05, gapSize: 0.04, depthTest: false, transparent: true });
+const secBtn = document.getElementById('secBtn');
+let section = false, capX = 0, xc = 0, crest = null, crestGeo = null, tw = null;
+const camHome = new THREE.Vector3(0.4, 0.5, 3.7), tgHome = new THREE.Vector3(0, -0.1, 0);
+function goCam(p, t) { tw = { p: p.clone(), t: t.clone() }; }
+renderer.domElement.addEventListener('pointerdown', () => { tw = null; });
+
+function initSection() {
+  const mid = teeth[1] || teeth[0], nxt = teeth[2];
+  xc = mid.x;
+  const hw = (mid.box.max.x - mid.box.min.x) / 2;
+  const gap = nxt ? nxt.box.min.x - xc : hw * 2;
+  capX = xc;   // cap sits just behind the cut tooth's far wall
+  secPlane.constant = -xc;
+  const H = mid.box.max.y - mid.box.min.y;
+  const top = mid.box.max.y - 0.22 * H, bot = mid.box.min.y + 0.30 * H;
+  pulp.position.set(mid.x, (top + bot) / 2, 0);
+  pulp.scale.set(0.03, (top - bot) / 2, 0.032);
+  teeth.forEach(t => {
+    t.wrapper.updateMatrixWorld(true);
+    const inv = new THREE.Matrix4().copy(t.wrapper.matrixWorld).invert();
+    t.ligs.forEach(({ mesh, m }) => {
+      const M = inv.clone().multiply(m.matrixWorld);
+      const S = new THREE.Matrix4().makeScale(LIG_XZ, LIG_Y, LIG_XZ);
+      const g = m.geometry; if (!g.boundingBox) g.computeBoundingBox();
+      const c = g.boundingBox.getCenter(new THREE.Vector3()).applyMatrix4(M);
+      const W = new THREE.Matrix4().makeTranslation(c.x, c.y, c.z).multiply(S)
+        .multiply(new THREE.Matrix4().makeTranslation(-c.x, -c.y, -c.z));
+      mesh.matrix.identity();
+      if (t === (teeth[1] || teeth[0])) ligUni.value = LIG_T * g.boundingBox.getSize(new THREE.Vector3()).length();
+      mesh.matrixWorldNeedsUpdate = true;
+    });
+  });
+  capCort.material.clippingPlanes = [ligPlane];     // removes the bone "dome" above the crest (the crescent)
+  capCanc.material.clippingPlanes = [ligPlane];
+  capGum.material.clippingPlanes = [gumPlane];
+  scene.add(pulp);
+
+  const zc = teeth.reduce((a, t) => a + t.t, 0) / teeth.length + 0.02;
+  const x0 = teeth[0].x - 0.5, x1 = teeth[teeth.length - 1].x + 0.5, N = 70;
+  const a1 = new Float32Array((N + 1) * 3);
+  for (let i = 0; i <= N; i++) { a1[i * 3] = x0 + (x1 - x0) * i / N; a1[i * 3 + 2] = zc; }
+  const a2 = a1.slice();
+  const base = ctrl(teeth, teeth.map(t => t.J - 0.08), 0.05);          // crest at stage 0
+  for (let i = 0; i <= N; i++) a2[i * 3 + 1] = evalCtrl(base, a2[i * 3]);
+  crestGeo = new THREE.BufferGeometry();
+  crestGeo.setAttribute('position', new THREE.BufferAttribute(a1, 3));
+  const g2 = new THREE.BufferGeometry();
+  g2.setAttribute('position', new THREE.BufferAttribute(a2, 3));
+  crest = new THREE.Group();
+  [-0.004, 0, 0.004].forEach(d => {
+    const l = new THREE.Line(crestGeo, crestMat);
+    l.position.y = d; l.renderOrder = 10; l.frustumCulled = false; crest.add(l);
+  });
+  const o = new THREE.Line(g2, origMat);
+  o.computeLineDistances(); o.renderOrder = 9; o.frustumCulled = false; crest.add(o);
+  crest.visible = false; scene.add(crest);
+}
+
+function ridgeCap(R, K, yb, topFn, inset) {
+  const L = (G.xb - G.xa) / 2, xm = (G.xa + G.xb) / 2, u = (capX - xm) / L;
+  const e = Math.sqrt(Math.max(0, 1 - Math.pow(Math.abs(u), 8)));
+  const H = Math.max(0.001, topFn(capX) - yb) * K * e - inset * 1.4, Rr = R * e - inset, y0 = yb + inset;
+  const s = new THREE.Shape();
+  for (let i = 0; i <= 40; i++) {
+    const phi = -Math.PI / 2 + Math.PI * i / 40, z = Rr * Math.sin(phi), y = y0 + H * Math.cos(phi);
+    if (i) s.lineTo(z, y); else s.moveTo(z, y);
+  }
+  return new THREE.ShapeGeometry(s);
+}
+function updateCaps(cg, cb) {
+  const g = ridgeCap(G.Rg, G.Kg, G.ybG, x => evalCtrl(cg, x), 0);
+  const b = ridgeCap(G.Rb, G.Kb, G.ybB, x => evalCtrl(cb, x), 0);
+  const c = ridgeCap(G.Rb, G.Kb, G.ybB, x => evalCtrl(cb, x), 0.035);
+  [[capGum, g, 0.004], [capCort, b, 0.002], [capCanc, c, 0]].forEach(([m, geo, dx]) => {
+    m.geometry.dispose(); m.geometry = geo; m.position.x = capX + dx;
+  });
+}
+function updateExtras(cg, cb) {
+  if (!crestGeo) return;
+  ligPlane.constant = evalCtrl(cb, xc); gumPlane.constant = ligPlane.constant + GUM_UP; slabPlane.constant = xc + SLAB;
+  const p = crestGeo.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, evalCtrl(cb, p.getX(i)));
+  p.needsUpdate = true;
+  if (section) updateCaps(cg, cb);
+}
+
+const LGI = (c, t) => '<i style="background:' + c + '"></i>' + t + '<br>';
+function setLegend() {
+  let h = LGI('#f4f0e4', 'Enamel') + LGI('#e0c070', 'Root (cementum)') + LGI('#ee9fa4', 'Gingiva') + LGI('#c9626e', 'Alveolar mucosa');
+  if (xray) h += LGI('#f3e7cf', 'Bone') + LGI('#ffffff', 'Bone crest') + LGI('#f2cc60', 'Original crest');
+  if (section) h = LGI('#e08a92', 'Gingiva') + LGI('#f2e6cc', 'Cortical bone') + LGI('#cdb48a', 'Spongy bone') + LGI('#e3c070', 'Dentin') + LGI('#6b4a40', 'Periodontal ligament') + LGI('#c8505a', 'Pulp');
+  document.querySelector('.legend').innerHTML = h;
+}
+setLegend();
+function applyModes() {
+  applyXray();
+  const cl = section ? [secPlane] : null;
+  [gumMat, boneMat, pulpMat, backMat].concat(teeth.flatMap(t => t.mats)).forEach(m => { m.clippingPlanes = cl; m.needsUpdate = true; });
+  // in section mode, also cut the gum and bone shells off at the crest (removes the pale arc)
+  slabPlane.constant = xc + SLAB;
+  gumMat.clippingPlanes = section ? [secPlane, gumPlane, slabPlane] : null;
+  boneMat.clippingPlanes = section ? [secPlane, ligPlane, slabPlane] : null;
+  caps.forEach(c => { c.visible = section; });
+  pulp.visible = section;
+  teeth.forEach(t => t.backs.forEach(b => { b.visible = section && t === (teeth[1] || teeth[0]); }));
+  if (crest) crest.visible = xray;
+  secBtn.classList.toggle('on', section);
+  setLegend();
+  ligMat.clippingPlanes = section ? [secPlane, ligPlane] : null; ligMat.needsUpdate = true;
+  teeth.forEach(t => t.ligs.forEach(l => { l.mesh.visible = section && t === (teeth[1] || teeth[0]); }));
+  secBtn.textContent = section ? '✂ Section ON: tap to exit' : '✂ Section: cut through the lateral incisor';
+  document.querySelector('.hint').textContent = section ? 'cut through lateral incisor · drag to orbit' : 'drag to rotate · pinch to zoom';
+  dirty = true;
+}
+secBtn.onclick = () => {
+  if (!ready) return;
+  section = !section;
+  if (section) xray = false;
+  applyModes();
+  if (section) goCam(new THREE.Vector3(xc - 3.3, 0.35, 0.8), new THREE.Vector3(xc, -0.1, 0));
+  else goCam(camHome, tgHome);
+};
+
+// ═══ LOOP ═══
+let loose = 0, wobT = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  if (ready) {
+    const target = EXPOSE[level];
+    if (Math.abs(target - expCur) > 0.0004) { expCur += (target - expCur) * 0.12; dirty = true; }
+    else if (expCur !== target) { expCur = target; dirty = true; }
+    if (dirty) { rebuild(); dirty = false; }
+
+    // slight sway at stage 3 to suggest loose teeth
+    loose += (((level >= 3 && !section) ? 0.035 : 0) - loose) * 0.05;
+    wobT += 0.05;
+    teeth.forEach((t, i) => { t.wrapper.rotation.z = Math.sin(wobT + i * 1.9) * loose; });
+  }
+  if (tw) {
+    camera.position.lerp(tw.p, 0.1); controls.target.lerp(tw.t, 0.1);
+    if (camera.position.distanceTo(tw.p) < 0.01) tw = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+document.getElementById('stageInfo').innerHTML = MESSAGES[0];
+applyXray();
+loadTeeth();
+animate();
+</script>
+</body></html>

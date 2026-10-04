@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Exam — Forensic Odontology</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;padding:14px;margin:0;font-size:14px;line-height:1.5}
+.nav{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.nav a{padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+h1{font-size:18px;margin:0 0 4px}
+.sub{font-size:12px;color:#8b949e;margin-bottom:14px}
+.name-box{background:#161b22;border-radius:8px;padding:12px;margin-bottom:14px}
+.name-box label{display:block;font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.name-box input{width:100%;padding:10px;background:#0d1117;color:#e6edf3;border:1px solid #30363d;border-radius:6px;font-size:14px;font-family:inherit}
+.name-box input:focus{outline:none;border-color:#d2a8ff}
+.progress{background:#161b22;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.progress .bar{flex:1;height:6px;background:#21262d;border-radius:3px;margin:0 10px;overflow:hidden}
+.progress .bar .fill{height:100%;background:#d2a8ff;width:0%;transition:width .3s}
+.q{background:#161b22;border-radius:10px;padding:14px;margin-bottom:12px}
+.q .num{font-size:11px;color:#d2a8ff;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.q .text{font-size:13.5px;margin-bottom:12px;line-height:1.55;color:#e6edf3}
+.q .opts{display:flex;flex-direction:column;gap:6px}
+.q .opt{padding:10px 12px;background:#0d1117;border:1px solid #30363d;border-radius:6px;cursor:pointer;font-size:13px;font-family:inherit;color:#e6edf3;text-align:left;transition:all .15s}
+.q .opt:active{transform:scale(.99)}
+.q .opt.selected{border-color:#d2a8ff;background:rgba(210,168,255,.1)}
+.q .opt.correct{border-color:#3fb950;background:rgba(63,185,80,.15);color:#3fb950}
+.q .opt.wrong{border-color:#f0883e;background:rgba(240,136,62,.15);color:#f0883e}
+.actions{display:flex;gap:8px;margin-top:16px}
+.actions button{flex:1;padding:14px;border-radius:8px;border:none;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.actions .submit{background:#3fb950;color:#0d1117}
+.actions .reset{background:#161b22;color:#e6edf3;border:1px solid #30363d}
+.actions button:disabled{opacity:.4;cursor:not-allowed}
+.result{background:linear-gradient(135deg,rgba(210,168,255,.15),rgba(88,166,255,.15));border:1px solid #d2a8ff;border-radius:10px;padding:20px;margin-top:16px;text-align:center;display:none}
+.result.show{display:block}
+.result .score{font-size:36px;font-weight:800;color:#d2a8ff;line-height:1;margin-bottom:8px}
+.result .label{font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px}
+.result .summary{margin-top:14px;font-size:13px;color:#e6edf3;line-height:1.6}
+.result .name{color:#58a6ff;font-weight:600}
+.result .stamp{display:inline-block;margin-top:12px;padding:6px 16px;border:2px solid #3fb950;border-radius:20px;color:#3fb950;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.result .actions-row{margin-top:16px;display:flex;gap:8px}
+.result .actions-row button{flex:1;padding:10px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html">Viva</a>
+<a href="gustafson.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Gustafson</a>
+<a href="attrition.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Attrition</a>
+<a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
+<a href="assignments.html" class="active">Exam</a>
+<a href="clinic.html">Clinic</a>
+</div>
+
+<h1>Forensic Odontology — Exam</h1>
+<div class="sub">Answer all 10 questions. Submit when finished.</div>
+
+<div class="name-box">
+<label>Candidate name / roll number</label>
+<input id="candidate" type="text" placeholder="Type your name" autocomplete="off">
+</div>
+
+<div class="progress">
+<span id="progressText">0 / 10 answered</span>
+<div class="bar"><div class="fill" id="progressFill"></div></div>
+</div>
+
+<div id="questions"></div>
+
+<div class="actions">
+<button class="submit" id="submitBtn" disabled>Submit exam</button>
+<button class="reset" id="resetBtn">Reset</button>
+</div>
+
+<div class="result" id="result">
+<div class="score" id="scoreDisplay">0 / 10</div>
+<div class="label">Your score</div>
+<div class="summary" id="resultSummary"></div>
+<div class="stamp" id="stamp">Submitted</div>
+<div class="actions-row">
+<button id="copyBtn">Copy result to clipboard</button>
+<button id="retryBtn">Retry exam</button>
+</div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    q: 'What does the FIRST digit of FDI notation indicate?',
+    opts: ['Tooth position from midline', 'Quadrant', 'Tooth type', 'Age of eruption'],
+    answer: 1,
+  },
+  {
+    q: 'Which quadrant of FDI notation represents the primary LOWER LEFT teeth?',
+    opts: ['5', '6', '7', '8'],
+    answer: 2,
+  },
+  {
+    q: 'How many primary teeth are in the full deciduous dentition?',
+    opts: ['16', '20', '24', '32'],
+    answer: 1,
+  },
+  {
+    q: 'Which permanent teeth are SUPERADDED?',
+    opts: ['Incisors', 'Canines', 'Premolars', 'All three molars'],
+    answer: 3,
+  },
+  {
+    q: 'Premolars are classified as:',
+    opts: ['Superadded', 'Successional', 'Both', 'Neither'],
+    answer: 1,
+  },
+  {
+    q: 'The upper left permanent central incisor has FDI number:',
+    opts: ['11', '21', '31', '41'],
+    answer: 1,
+  },
+  {
+    q: "In Gustafson's method, which parameter is considered the MOST reliable?",
+    opts: ['Attrition', 'Periodontosis', 'Root transparency', 'Cementum apposition'],
+    answer: 2,
+  },
+  {
+    q: 'In which year does the permanent third molar usually erupt?',
+    opts: ['10–12', '14–16', '17–25', '26–30'],
+    answer: 2,
+  },
+  {
+    q: 'The permanent first molar erupts at:',
+    opts: ['4–5 years', '6–7 years', '9–10 years', '12–13 years'],
+    answer: 1,
+  },
+  {
+    q: 'The anterior fontanelle closes at approximately:',
+    opts: ['2 months', '6–8 months', '1.5–2 years', '5 years'],
+    answer: 2,
+  },
+];
+
+let answers = new Array(QUESTIONS.length).fill(null);
+let submitted = false;
+
+function render() {
+  const root = document.getElementById('questions');
+  root.innerHTML = '';
+  QUESTIONS.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'q';
+    div.innerHTML = '<div class="num">Question ' + (i+1) + '</div><div class="text">' + item.q + '</div>';
+    const opts = document.createElement('div');
+    opts.className = 'opts';
+    item.opts.forEach((o, j) => {
+      const b = document.createElement('button');
+      b.className = 'opt';
+      if (answers[i] === j) b.classList.add('selected');
+      b.textContent = o;
+      b.onclick = () => {
+        if (submitted) return;
+        answers[i] = j;
+        render();
+      };
+      opts.appendChild(b);
+    });
+    div.appendChild(opts);
+    root.appendChild(div);
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  const answered = answers.filter(a => a !== null).length;
+  document.getElementById('progressText').textContent = answered + ' / ' + QUESTIONS.length + ' answered';
+  document.getElementById('progressFill').style.width = (answered / QUESTIONS.length * 100) + '%';
+  document.getElementById('submitBtn').disabled = answered < QUESTIONS.length || submitted;
+}
+
+document.getElementById('submitBtn').onclick = () => {
+  if (answers.filter(a => a !== null).length < QUESTIONS.length) return;
+  submitted = true;
+  const name = document.getElementById('candidate').value.trim() || 'Unknown candidate';
+  let correct = 0;
+  const wrong = [];
+  QUESTIONS.forEach((item, i) => {
+    if (answers[i] === item.answer) correct++;
+    else wrong.push(i + 1);
+  });
+
+  // Mark correct/wrong in the DOM
+  document.querySelectorAll('.q').forEach((qEl, i) => {
+    qEl.querySelectorAll('.opt').forEach((b, j) => {
+      b.classList.remove('selected');
+      if (j === QUESTIONS[i].answer) b.classList.add('correct');
+      else if (j === answers[i] && answers[i] !== QUESTIONS[i].answer) b.classList.add('wrong');
+    });
+  });
+
+  document.getElementById('scoreDisplay').textContent = correct + ' / ' + QUESTIONS.length;
+  const percent = Math.round(correct / QUESTIONS.length * 100);
+  let grade = 'Needs review';
+  if (percent >= 90) grade = 'Excellent';
+  else if (percent >= 70) grade = 'Good';
+  else if (percent >= 50) grade = 'Pass';
+
+  const summary = document.getElementById('resultSummary');
+  summary.innerHTML = '<div class="name">' + name + '</div>' +
+    'Score: ' + percent + '% — ' + grade + '<br>' +
+    (wrong.length ? 'Review question(s): ' + wrong.join(', ') : 'All correct.') +
+    '<br><span style="color:#8b949e;font-size:11px">Submitted: ' + new Date().toLocaleString() + '</span>';
+
+  document.getElementById('result').classList.add('show');
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('result').scrollIntoView({behavior: 'smooth'});
+};
+
+document.getElementById('resetBtn').onclick = () => {
+  answers = new Array(QUESTIONS.length).fill(null);
+  submitted = false;
+  document.getElementById('candidate').value = '';
+  document.getElementById('result').classList.remove('show');
+  render();
+};
+
+document.getElementById('retryBtn').onclick = document.getElementById('resetBtn').onclick;
+
+document.getElementById('copyBtn').onclick = () => {
+  const name = document.getElementById('candidate').value.trim() || 'Unknown';
+  let correct = 0;
+  QUESTIONS.forEach((item, i) => { if (answers[i] === item.answer) correct++; });
+  const text = 'Forensic Odontology Exam\nCandidate: ' + name +
+    '\nScore: ' + correct + ' / ' + QUESTIONS.length +
+    '\nDate: ' + new Date().toLocaleString();
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('copyBtn').textContent = 'Copied!';
+    setTimeout(() => document.getElementById('copyBtn').textContent = 'Copy result to clipboard', 1500);
+  });
+};
+
+render();
+</script>
+</body></html>

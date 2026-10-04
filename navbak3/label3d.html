@@ -46,30 +46,6 @@ select{width:100%;padding:8px;background:#161b22;color:#e6edf3;border:1px solid 
 .verdict.win{background:rgba(63,185,80,.2);color:#3fb950}
 .verdict.partial{background:rgba(240,136,62,.2);color:#f0883e}
 .verdict.none{background:#0d1117;color:#8b949e}
-
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
-.tabs button{padding:9px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-family:inherit;font-size:12px;font-weight:700}
-.tabs button.on{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
-.secbar{display:flex;gap:6px;margin-bottom:8px}
-.secbar button{flex:1;padding:8px 4px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600}
-.secbar button.on{background:#58a6ff;color:#0d1117;border-color:#58a6ff}
-.secfig{background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;padding:6px;max-width:460px;margin:0 auto}
-#secSvg{display:block;width:100%;height:auto}
-#secSvg .part{cursor:pointer}
-#secSvg .sel{filter:brightness(1.3) drop-shadow(0 0 4px #fff)}
-#secSvg .good{filter:brightness(1.2) drop-shadow(0 0 6px #3fb950)}
-#secSvg .bad{filter:drop-shadow(0 0 6px #f85149)}
-.secinfo{margin-top:10px;background:#161b22;border-radius:8px;padding:10px;font-size:12px;line-height:1.55}
-.secinfo b{color:#f0883e}
-.secinfo .ok{color:#3fb950;font-weight:700}
-.secinfo .no{color:#f0883e;font-weight:700}
-.secinfo .n{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;border-radius:9px;background:#d2a8ff;color:#0d1117;font-size:11px;font-weight:700;margin-right:6px}
-.secinfo .lg{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
-.secinfo button{padding:8px 6px;border-radius:8px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600;text-align:left}
-.secinfo .act{display:flex;gap:6px;margin-top:10px}
-.secinfo .act button{flex:1;text-align:center;background:#3fb950;color:#0d1117;border:none;padding:10px}
-.secinfo a.lk{display:inline-block;margin-top:6px;padding:5px 10px;border-radius:12px;background:#1f6feb;color:#fff;text-decoration:none;font-size:12px;font-weight:600}
-.secinfo .nt{margin-top:8px;font-size:10.5px;color:#8b949e}
 </style>
 </head>
 <body>
@@ -85,14 +61,11 @@ select{width:100%;padding:8px;background:#161b22;color:#e6edf3;border:1px solid 
 <a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
 <a href="secondary.html">Secondary dentin</a>
 <a href="resorption.html">Root resorption</a>
-<a href="transparency.html">Transparency</a>
-<a href="cementum.html">Cementum</a>
 </div>
 
 <h1>Label the Tooth</h1>
 <div class="sub">Pick a tooth, tap each button, then tap where that part sits on the tooth.</div>
 
-<div class="tabs"><button id="tab3d" class="on">🦷 3D tooth</button><button id="tabSec">✂ Cross-section</button></div>
 <select id="picker"></select>
 
 <div class="mode">
@@ -118,12 +91,6 @@ select{width:100%;padding:8px;background:#161b22;color:#e6edf3;border:1px solid 
 <div class="row"><span class="label neck"><span class="n">3</span>Neck</span><span class="result wait" data-r="neck">—</span></div>
 <div class="row"><span class="label root"><span class="n">4</span>Root</span><span class="result wait" data-r="root">—</span></div>
 <div class="verdict none" id="verdict">Place four dots, then check</div>
-</div>
-
-<div id="secWrap" style="display:none">
-<div class="secbar"><button data-m="learn" class="on">Learn</button><button data-m="test">Test</button><button id="secBrkBtn">Crown · Neck · Root</button></div>
-<div class="secfig"><svg id="secSvg" viewBox="0 0 300 460" xmlns="http://www.w3.org/2000/svg"></svg></div>
-<div class="secinfo" id="secInfo"></div>
 </div>
 
 <script type="importmap">
@@ -484,165 +451,4 @@ loadTooth('mandibular_first_molar');
 
 
 <div style="text-align:center;font-size:10px;color:#484f58;padding:16px 12px 24px;line-height:1.5">Teaching modules for MBBS Forensic Medicine.<br>Content based on Reddy's Forensic Medicine, 36th ed.<br>3D models: University of Dundee School of Dentistry (CC BY 4.0).<br>Full attributions: <a href="ATTRIBUTIONS.md" style="color:#8b949e">ATTRIBUTIONS.md</a></div>
-<script>
-(function () {
-  var D = "M104 190C100 150 118 90 138 44L162 44C182 90 200 150 196 190C194 250 180 340 154 408Q150 418 146 408C120 340 106 250 104 190Z";
-  var E = "M104 190C100 150 118 90 138 44L162 44C182 90 200 150 196 190";
-  var R = "M104 190C106 250 120 340 146 408Q150 418 154 408C180 340 194 250 196 190";
-  var P = "M150 76C138 96 128 140 130 190C132 250 144 340 150 396C156 340 168 250 170 190C172 140 162 96 150 76Z";
-  var G = "M0 218C40 214 70 196 92 178L208 178C230 196 260 214 300 218L300 236L0 236Z";
-
-  var PARTS = {
-    enamel:   { n: 1, name: 'Enamel', link: ['attrition.html', 'Open Attrition'],
-      info: 'Enamel covers the crown of the tooth. In attrition, wear from chewing destroys the occlusal surface gradually, first involving the enamel, then the dentin, and at last the pulp is exposed in old age.' },
-    dentin:   { n: 2, name: 'Dentin', link: ['transparency.html', 'Open Transparency'],
-      info: 'Dentin forms the body of the tooth. It is covered by enamel on the crown and by cementum on the root. With age the dentinal canals fill with mineral, so the root dentin becomes translucent and then transparent, from below upwards in the lower jaw and from above downwards in the upper jaw.' },
-    pulp:     { n: 3, name: 'Dental pulp', link: ['secondary.html', 'Open Secondary dentin'],
-      info: 'The pulp lies inside the dentin. With age, secondary dentin is deposited on the walls of the pulp cavity, first at the pulp chamber and then extending towards the apex, so the cavity shrinks and may be filled completely. Sex and blood group can be determined from the cells of the pulp cavity.' },
-    cementum: { n: 4, name: 'Cementum', link: ['cementum.html', 'Open Cementum'],
-      info: 'Cementum covers the root and is attached to the alveolar bone by the periodontal membrane. It increases in thickness with age, especially near the end of the root. Root resorption involves both cementum and dentin.' },
-    pdl:      { n: 5, name: 'Periodontal membrane', link: ['periodontosis.html', 'Open Periodontosis'],
-      info: 'The periodontal membrane attaches the cementum of the root to the alveolar bone. Regression of the periodontal tissues surrounding the teeth is part of periodontosis in advancing age.' },
-    gum:      { n: 6, name: 'Gum', link: ['periodontosis.html', 'Open Periodontosis'],
-      info: 'With advancing age the gums and periodontal tissues regress, gradually exposing the necks and adjacent parts of the roots, so the teeth become loose and fall off. Poor oral hygiene increases periodontosis.' },
-    bone:     { n: 7, name: 'Alveolar process', link: null,
-      info: 'The alveolar process is the part of the jawbone that carries the tooth sockets (alveolar cavities). After antemortem tooth loss the socket fills with organised clot, then fibrous tissue and new bone, and in about one year the whole socket is filled with new bone.' }
-  };
-  var ORDER = ['enamel', 'dentin', 'pulp', 'cementum', 'pdl', 'gum', 'bone'];
-  var BADGE = { enamel: [102, 119], dentin: [128, 285], pulp: [150, 150], cementum: [112, 310], pdl: [102, 335], gum: [50, 218], bone: [55, 330] };
-
-  function br(y1, y2, t) {
-    var m = (y1 + y2) / 2;
-    return '<path d="M250 ' + y1 + 'V' + y2 + 'M245 ' + y1 + 'H250M245 ' + y2 + 'H250" stroke="#fff" stroke-width="2" fill="none"/>' +
-      '<text x="256" y="' + (m + 4) + '" fill="#fff" stroke="#0d1117" stroke-width="3" paint-order="stroke">' + t + '</text>';
-  }
-  var badges = '';
-  ORDER.forEach(function (k) {
-    var b = BADGE[k];
-    badges += '<circle cx="' + b[0] + '" cy="' + b[1] + '" r="7.5" fill="#0d1117" stroke="#fff" stroke-width="1.5"/>' +
-      '<text x="' + b[0] + '" y="' + (b[1] + 3.8) + '" text-anchor="middle" font-size="10" font-weight="700" fill="#fff" font-family="-apple-system,sans-serif">' + PARTS[k].n + '</text>';
-  });
-
-  var svg = document.getElementById('secSvg');
-  svg.innerHTML =
-    '<defs>' +
-    '<linearGradient id="gDent" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3c675"/><stop offset="1" stop-color="#d8993d"/></linearGradient>' +
-    '<linearGradient id="gGum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0a0a0"/><stop offset="1" stop-color="#d96c75"/></linearGradient>' +
-    '<radialGradient id="gPulp" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#e2574c"/><stop offset="1" stop-color="#a42a2a"/></radialGradient>' +
-    '<pattern id="pBone" width="26" height="26" patternUnits="userSpaceOnUse"><rect width="26" height="26" fill="#eadcb6"/>' +
-    '<ellipse cx="6" cy="7" rx="4" ry="3" fill="#b99a6b" opacity=".7"/><ellipse cx="18" cy="12" rx="3" ry="2.4" fill="#b99a6b" opacity=".7"/>' +
-    '<ellipse cx="9" cy="20" rx="3.4" ry="2.6" fill="#b99a6b" opacity=".7"/><ellipse cx="21" cy="22" rx="2.2" ry="1.8" fill="#b99a6b" opacity=".7"/></pattern>' +
-    '<pattern id="pPdl" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><rect width="7" height="7" fill="#a8706f"/><line x1="0" y1="0" x2="0" y2="7" stroke="#d9a3a0" stroke-width="2"/></pattern>' +
-    '<mask id="mD" maskUnits="userSpaceOnUse" x="-20" y="-20" width="340" height="500"><rect x="-20" y="-20" width="340" height="500" fill="#fff"/><path d="' + D + '" fill="#000"/></mask>' +
-    '<mask id="mC" maskUnits="userSpaceOnUse" x="-20" y="-20" width="340" height="500"><rect x="-20" y="-20" width="340" height="500" fill="#fff"/><path d="' + D + '" fill="#000"/>' +
-    '<path d="' + R + '" fill="none" stroke="#000" stroke-width="28" stroke-linejoin="round"/></mask>' +
-    '</defs>' +
-    '<rect class="part" data-part="bone" x="0" y="230" width="300" height="230" fill="url(#pBone)"/>' +
-    '<path class="part" data-part="pdl" d="' + R + '" fill="none" stroke="url(#pPdl)" stroke-width="64" stroke-linejoin="round" mask="url(#mC)"/>' +
-    '<path class="part" data-part="gum" d="' + G + '" fill="url(#gGum)"/>' +
-    '<path class="part" data-part="cementum" d="' + R + '" fill="none" stroke="#d6c297" stroke-width="28" stroke-linejoin="round" mask="url(#mD)"/>' +
-    '<path class="part" data-part="enamel" d="' + E + '" fill="none" stroke="#f7f3e6" stroke-width="40" stroke-linejoin="round" mask="url(#mD)"/>' +
-    '<path class="part" data-part="dentin" d="' + D + '" fill="url(#gDent)"/>' +
-    '<path class="part" data-part="pulp" d="' + P + '" fill="url(#gPulp)"/>' +
-    '<g id="secBrk" style="display:none" pointer-events="none" font-family="-apple-system,sans-serif" font-size="11" font-weight="700">' + br(26, 168, 'Crown') + br(168, 212, 'Neck') + br(212, 416, 'Root') + '</g>' +
-    '<g id="secBadges" pointer-events="none">' + badges + '</g>' +
-    '<g id="secMarks" pointer-events="none"></g>';
-
-  var info = document.getElementById('secInfo'), marks = document.getElementById('secMarks');
-  var mode = 'learn', sel = null, queue = [], qi = 0, score = 0, missed = [], answered = false, fb = '', done = false;
-
-  function partEl(k) { return svg.querySelector('[data-part="' + k + '"]'); }
-  function clearCls() { [].forEach.call(svg.querySelectorAll('.part'), function (e) { e.classList.remove('sel', 'good', 'bad'); }); marks.innerHTML = ''; }
-  function mark(k, c) { partEl(k).classList.add(c); }
-  function toSvg(e) { var pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); }
-  function dot(pt, ok) { marks.innerHTML = '<circle cx="' + pt.x + '" cy="' + pt.y + '" r="6" fill="' + (ok ? '#3fb950' : '#f85149') + '" stroke="#fff" stroke-width="2"/>'; }
-  function linkHtml(p) { return p.link ? '<br><a class="lk" href="' + p.link[0] + '">' + p.link[1] + ' ↗</a>' : ''; }
-
-  function renderLearn() {
-    var h = '';
-    if (!sel) h = 'Tap any part of the tooth to learn it. The numbers match the list below.';
-    else { var p = PARTS[sel]; h = '<b>' + p.n + ' · ' + p.name + '</b><br>' + p.info + linkHtml(p); }
-    h += '<div class="lg">' + ORDER.map(function (k) { return '<button data-k="' + k + '"><span class="n">' + PARTS[k].n + '</span>' + PARTS[k].name + '</button>'; }).join('') + '</div>';
-    h += '<div class="nt">Schematic, not to scale: the thin layers are drawn thicker so they can be tapped.</div>';
-    info.innerHTML = h;
-  }
-  function renderTest() {
-    if (done) {
-      var h = '<b>Score: ' + score + ' / ' + queue.length + '</b>';
-      if (missed.length) {
-        h += '<br>To revise: ' + missed.map(function (k) { return PARTS[k].name; }).join(', ') + '.';
-        h += '<div class="act"><button data-act="retry">Retry missed</button><button data-act="new">New test</button></div>';
-      } else h += '<br><span class="ok">All parts correct.</span><div class="act"><button data-act="new">New test</button></div>';
-      info.innerHTML = h; return;
-    }
-    var t = queue[qi];
-    var h2 = 'Question ' + (qi + 1) + ' / ' + queue.length + ' · Score ' + score +
-      '<div style="font-size:15px;margin:6px 0">Tap the <b>' + PARTS[t].name + '</b></div>';
-    if (answered) {
-      h2 += fb + '<br>' + PARTS[t].info + linkHtml(PARTS[t]);
-      h2 += '<div class="act"><button data-act="next">' + (qi === queue.length - 1 ? 'See result' : 'Next ▶') + '</button></div>';
-    }
-    info.innerHTML = h2;
-  }
-  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var x = a[i]; a[i] = a[j]; a[j] = x; } return a; }
-  function startTest(list) { queue = shuffle(list || ORDER); qi = 0; score = 0; missed = []; answered = false; done = false; fb = ''; clearCls(); renderTest(); }
-  function setMode(m) {
-    mode = m; sel = null; clearCls();
-    [].forEach.call(document.querySelectorAll('.secbar button[data-m]'), function (b) { b.classList.toggle('on', b.getAttribute('data-m') === m); });
-    document.getElementById('secBadges').style.display = m === 'learn' ? '' : 'none';
-    if (m === 'learn') renderLearn(); else startTest();
-  }
-  function answer(k, pt) {
-    if (answered || done) return;
-    answered = true;
-    var t = queue[qi], ok = (k === t);
-    clearCls();
-    if (ok) { score++; fb = '<span class="ok">✓ Correct</span>'; mark(t, 'good'); }
-    else { missed.push(t); fb = '<span class="no">✗ That is the ' + PARTS[k].name.toLowerCase() + '. The ' + PARTS[t].name.toLowerCase() + ' is highlighted.</span>'; mark(k, 'bad'); mark(t, 'good'); }
-    dot(pt, ok);
-    renderTest();
-  }
-
-  svg.addEventListener('click', function (e) {
-    var el = e.target.closest ? e.target.closest('[data-part]') : null;
-    if (!el) return;
-    var k = el.getAttribute('data-part');
-    if (mode === 'learn') { clearCls(); sel = k; mark(k, 'sel'); renderLearn(); }
-    else answer(k, toSvg(e));
-  });
-  info.addEventListener('click', function (e) {
-    var b = e.target.closest ? e.target.closest('button') : null;
-    if (!b) return;
-    var k = b.getAttribute('data-k'), a = b.getAttribute('data-act');
-    if (k && mode === 'learn') { clearCls(); sel = k; mark(k, 'sel'); renderLearn(); }
-    if (a === 'next') { clearCls(); answered = false; qi++; if (qi >= queue.length) done = true; renderTest(); }
-    if (a === 'retry') startTest(missed.slice());
-    if (a === 'new') startTest();
-  });
-  [].forEach.call(document.querySelectorAll('.secbar button[data-m]'), function (b) {
-    b.onclick = function () { if (b.getAttribute('data-m') !== mode) setMode(b.getAttribute('data-m')); };
-  });
-  document.getElementById('secBrkBtn').onclick = function () {
-    var g = document.getElementById('secBrk'), on = g.style.display === 'none';
-    g.style.display = on ? '' : 'none'; this.classList.toggle('on', on);
-  };
-
-  // tabs: 3D tooth | cross-section
-  var wrap = document.getElementById('secWrap'), tab3d = document.getElementById('tab3d'), tabSec = document.getElementById('tabSec');
-  var sub = document.querySelector('.sub'), sub3d = sub.textContent;
-  var els3d = [document.getElementById('picker'), document.querySelector('.mode'), document.getElementById('viewer'), document.querySelector('.controls'), document.getElementById('status')];
-  function showTab(t) {
-    var sec = (t === 'sec');
-    els3d.forEach(function (e) { if (e) e.style.display = sec ? 'none' : ''; });
-    wrap.style.display = sec ? '' : 'none';
-    tab3d.classList.toggle('on', !sec); tabSec.classList.toggle('on', sec);
-    sub.textContent = sec ? 'Tap the parts of a tooth in section: learn them first, then take the test.' : sub3d;
-    if (!sec) window.dispatchEvent(new Event('resize'));
-  }
-  tab3d.onclick = function () { showTab('3d'); };
-  tabSec.onclick = function () { showTab('sec'); };
-  renderLearn();
-  window.addEventListener('load', function () { if (location.hash === '#section') showTab('sec'); });
-})();
-</script>
 </body></html>

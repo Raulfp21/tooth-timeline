@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Attrition — Real Teeth</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.nav{display:flex;gap:5px;padding:10px;flex-wrap:wrap;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:10}
+.nav a{padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.wrap{padding:12px;max-width:960px;margin:0 auto}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.viewer{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;height:48vh;min-height:320px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.viewer .hint{position:absolute;top:8px;left:10px;font-size:10px;color:#8b949e;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none;z-index:2}
+.viewer .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b949e;font-size:12px;background:rgba(13,17,23,.7);pointer-events:none}
+.controls{background:#161b22;border-radius:10px;padding:14px;margin-top:12px}
+.ctrl-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ctrl-title .name{font-size:15px;font-weight:700;color:#f0883e}
+.ctrl-title .val{font-size:13px;color:#d2a8ff;font-weight:700}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:24px;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:5px;background:#30363d;border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#f0883e;border:2px solid #0d1117;margin-top:-9px;cursor:pointer}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:#484f58;padding:2px 2px 0}
+.stage-info{margin-top:10px;padding:10px;background:#0d1117;border-radius:8px;font-size:12.5px;line-height:1.55;color:#c9d1d9;min-height:70px}
+.stage-info strong{color:#f0883e}
+.presets{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.presets button{flex:1;min-width:55px;padding:8px 4px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.presets button:active{background:#f0883e;color:#0d1117}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html">Viva</a>
+<a href="gustafson.html">Gustafson</a>
+<a href="attrition.html" class="active">Attrition</a>
+<a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
+<a href="secondary.html">Secondary dentin</a>
+<a href="resorption.html">Root resorption</a>
+<a href="transparency.html">Transparency</a>
+<a href="cementum.html">Cementum</a>
+<a href="assignments.html">Exam</a>
+<a href="clinic.html">Clinic</a>
+</div>
+
+<div class="wrap">
+<h1>Attrition — Lower Incisors</h1>
+<div class="sub">Drag the slider. Watch the incisal edge wear down and yellow dentin appear.</div>
+
+<div class="viewer" id="viewer">
+  <div class="hint">drag to rotate · pinch to zoom</div>
+  <div class="loading" id="loading">Loading teeth…</div>
+</div>
+
+<div class="controls">
+  <div class="ctrl-title">
+    <span class="name">A — Attrition</span>
+    <span class="val" id="valDisplay">0 / 3</span>
+  </div>
+  <input type="range" min="0" max="3" step="1" value="0" id="slider">
+  <div class="scale"><span>0 · none</span><span>1 · begin</span><span>2 · obvious</span><span>3 · max</span></div>
+  <div class="stage-info" id="stageInfo"></div>
+  <div class="presets">
+    <button data-v="0">Young</button>
+    <button data-v="1">Early</button>
+    <button data-v="2">Middle</button>
+    <button data-v="3">Advanced</button>
+  </div>
+</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+    "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const FOLDER = './models/';
+
+// Lower anterior teeth as requested
+const TEETH = [
+  { file: 'mandibular_left_central_incisor', x: -0.75, z: 0.10,  ry: 0.20 },
+  { file: 'mandibular_left_lateral_incisor', x:  0.10, z: 0.00,  ry: 0.00 },
+  { file: 'mandibular_left_canine',          x:  1.00, z: -0.15, ry: -0.30 },
+];
+
+// Fraction of the crown worn away at each stage
+const WEAR = [0, 0.10, 0.30, 0.62];
+
+const MESSAGES = [
+  '<strong>Stage 0 — no change.</strong> Incisal edges intact. Enamel fully covers the crown.',
+  '<strong>Stage 1 — beginning.</strong> Slight loss of enamel on the incisal edge. A thin yellow line of dentin may be visible.',
+  '<strong>Stage 2 — obvious.</strong> Clear loss of incisal enamel with a broad exposed band of yellow dentin. Incisal edge noticeably shortened.',
+  '<strong>Stage 3 — maximum.</strong> Severe wear down to the level of the pulp. A small reddish spot marks where the pulp chamber has been exposed.',
+];
+
+const viewer = document.getElementById('viewer');
+const loading = document.getElementById('loading');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.localClippingEnabled = true;
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(38, viewer.clientWidth / viewer.clientHeight, 0.01, 200);
+camera.position.set(0.12, 2.2, 4.0);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.target.set(0.12, 0, 0);
+controls.minDistance = 2;
+controls.maxDistance = 9;
+controls.minPolarAngle = 0.2;
+controls.maxPolarAngle = Math.PI / 1.8;
+// NO auto-rotation
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+const key = new THREE.DirectionalLight(0xffffff, 1.15);
+key.position.set(2, 5, 4); scene.add(key);
+const fill = new THREE.DirectionalLight(0xaaccff, 0.5);
+fill.position.set(-4, 1, -2); scene.add(fill);
+const rim = new THREE.DirectionalLight(0xffccaa, 0.35);
+rim.position.set(0, -3, -3); scene.add(rim);
+
+const loader = new GLTFLoader();
+const toothGroup = new THREE.Group();
+scene.add(toothGroup);
+
+const teeth = [];
+let level = 0;
+
+function makeBackMat(plane) {
+  return new THREE.MeshStandardMaterial({
+    color: 0xe2b85c, roughness: 0.85, side: THREE.BackSide,
+    clippingPlanes: [plane],
+  });
+}
+
+async function loadTeeth() {
+  for (const spec of TEETH) {
+    try {
+      const gltf = await new Promise((res, rej) =>
+        loader.load(FOLDER + spec.file + '.glb', res, undefined, rej));
+      const root = gltf.scene;
+
+      // Centre first (no flip — we're cutting from the bottom)
+      let box = new THREE.Box3().setFromObject(root);
+      const centre = box.getCenter(new THREE.Vector3());
+      root.position.sub(centre);
+      root.updateMatrixWorld(true);
+
+      box = new THREE.Box3().setFromObject(root);
+      const size = box.getSize(new THREE.Vector3());
+      const scale = 1.5 / Math.max(size.x, size.y, size.z);
+
+      const wrapper = new THREE.Group();
+      wrapper.add(root);
+      wrapper.scale.setScalar(scale);
+      wrapper.position.set(spec.x, 0, spec.z);
+      wrapper.rotation.y = spec.ry;
+      toothGroup.add(wrapper);
+      wrapper.updateMatrixWorld(true);
+
+      // Clip plane: normal (0, 1, 0) keeps points with y >= -constant
+      // So we set constant = -cutY to keep only points ABOVE cutY.
+      // The crown tip (white part) is at the BOTTOM of these models, so
+      // we cut from the bottom upward.
+      const plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 999);
+
+      const meshes = [];
+      root.traverse(o => { if (o.isMesh) meshes.push(o); });
+      meshes.forEach(m => {
+        const mats = Array.isArray(m.material) ? m.material : [m.material];
+        mats.forEach(mt => {
+          mt.side = THREE.FrontSide;
+          mt.clippingPlanes = [plane];
+          mt.needsUpdate = true;
+        });
+        const back = new THREE.Mesh(m.geometry, makeBackMat(plane));
+        m.add(back);
+      });
+
+      const wb = new THREE.Box3().setFromObject(wrapper);
+      const totalH = wb.max.y - wb.min.y;
+      const crownH = totalH * 0.42;   // approximate crown height (top of model)
+      const topY = wb.max.y;
+      const cx = (wb.min.x + wb.max.x) / 2;
+      const cz = (wb.min.z + wb.max.z) / 2;
+
+      // Pulp horn: small red ellipsoid near the crown tip (bottom of model)
+      const pulp = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 20, 16),
+        new THREE.MeshStandardMaterial({
+          color: 0xc03838, roughness: 0.6, clippingPlanes: [plane],
+        })
+      );
+      pulp.scale.set(0.05, crownH * 0.28, 0.045);
+      pulp.position.set(cx, topY - crownH * 0.72, cz);
+      pulp.visible = false;
+      toothGroup.add(pulp);
+
+      teeth.push({ plane, topY, crownH, curFrac: 0, pulp });
+    } catch (e) {
+      console.error('Failed to load', spec.file, e);
+    }
+  }
+  loading.style.display = 'none';
+  setLevel(0);
+}
+
+function setLevel(l) {
+  level = l;
+  document.getElementById('valDisplay').textContent = l + ' / 3';
+  document.getElementById('stageInfo').innerHTML = MESSAGES[l];
+  teeth.forEach(t => { t.pulp.visible = l >= 3; });
+}
+
+function updateCuts() {
+  const target = WEAR[level];
+  teeth.forEach(t => {
+    t.curFrac += (target - t.curFrac) * 0.12;
+    if (Math.abs(target - t.curFrac) < 0.0005) t.curFrac = target;
+    if (t.curFrac <= 0) {
+      // No cut — plane sits above the tooth
+      t.plane.constant = t.topY + 0.2;
+    } else {
+      // Plane descends into the crown from above
+      const cutY = t.topY - t.crownH * t.curFrac;
+      t.plane.constant = cutY;
+    }
+  });
+}
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input', () => setLevel(parseInt(slider.value, 10)));
+document.querySelectorAll('.presets button').forEach(b => {
+  b.onclick = () => {
+    const v = parseInt(b.dataset.v, 10);
+    slider.value = v;
+    setLevel(v);
+  };
+});
+
+window.addEventListener('resize', () => {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  updateCuts();
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+document.getElementById('stageInfo').innerHTML = MESSAGES[0];
+loadTeeth();
+animate();
+</script>
+</body></html>

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Dental Clinic</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow:hidden;background:#c8a882;font-family:-apple-system,sans-serif}
+#app{width:100vw;height:100vh;display:block}
+.nav{position:absolute;top:10px;left:10px;display:flex;gap:5px;z-index:5;flex-wrap:wrap;max-width:75vw}
+.nav a{padding:5px 9px;border-radius:6px;background:rgba(22,27,34,.9);color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.hint{position:absolute;top:12px;right:12px;background:rgba(210,168,255,.95);color:#1a1410;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:600;z-index:5}
+.info{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.92);color:#e6edf3;padding:8px 16px;border-radius:20px;font-size:12px;border:1px solid #30363d;z-index:5;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html">Viva</a>
+<a href="gustafson.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Gustafson</a>
+<a href="attrition.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Attrition</a>
+<a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
+<a href="secondary.html">Secondary dentin</a>
+<a href="resorption.html">Root resorption</a>
+<a href="transparency.html">Transparency</a>
+<a href="cementum.html">Cementum</a>
+<a href="assignments.html">Exam</a>
+<a href="clinic.html" class="active">Clinic</a>
+</div>
+<div class="hint">Tap any object</div>
+<div class="info" id="info">Drag to rotate · pinch to zoom · tap an object</div>
+<div id="app"></div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ── Scene ─────────────────────────────────────
+const scene = new THREE.Scene();
+// Warm tone that blends with the floor so no empty black is visible
+scene.background = new THREE.Color(0xc8a882);
+scene.fog = new THREE.Fog(0xc8a882, 26, 44);
+
+// Perspective camera — fills the viewport naturally
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(11, 13, 11);
+camera.lookAt(0, 0.8, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.getElementById('app').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.target.set(0, 0.8, 0);
+controls.minPolarAngle = Math.PI / 8;
+controls.maxPolarAngle = Math.PI / 2.15;
+controls.minAzimuthAngle = -Math.PI / 2.5;
+controls.maxAzimuthAngle = Math.PI / 2.5;
+controls.minDistance = 8;
+controls.maxDistance = 26;
+
+// ── Lights ────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.82));
+const sun = new THREE.DirectionalLight(0xfff5e0, 0.85);
+sun.position.set(8, 18, 6);
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x88aaff, 0.3);
+fill.position.set(-8, 6, -6);
+scene.add(fill);
+
+// ── Materials ─────────────────────────────────
+const M = {
+  floor:  new THREE.MeshStandardMaterial({ color: 0xc8a882, roughness: 0.92 }),
+  wall:   new THREE.MeshStandardMaterial({ color: 0xeadfc9, roughness: 0.95 }),
+  wallB:  new THREE.MeshStandardMaterial({ color: 0xe0d4bc, roughness: 0.95 }),
+  chair:  new THREE.MeshStandardMaterial({ color: 0x4a9ba8, roughness: 0.6 }),
+  chairD: new THREE.MeshStandardMaterial({ color: 0x3a7a8a, roughness: 0.6 }),
+  exam:   new THREE.MeshStandardMaterial({ color: 0xd28a4a, roughness: 0.6 }),
+  examD:  new THREE.MeshStandardMaterial({ color: 0xa86a3a, roughness: 0.6 }),
+  metal:  new THREE.MeshStandardMaterial({ color: 0x7a7a8a, roughness: 0.4, metalness: 0.4 }),
+  white:  new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.7 }),
+  wood:   new THREE.MeshStandardMaterial({ color: 0xa67c52, roughness: 0.85 }),
+  woodD:  new THREE.MeshStandardMaterial({ color: 0x8a6442, roughness: 0.85 }),
+  screen: new THREE.MeshStandardMaterial({ color: 0x1a2f4a, emissive: 0x2a6a9a, emissiveIntensity: 0.55 }),
+  screenB:new THREE.MeshStandardMaterial({ color: 0x0a1a2a, roughness: 0.5 }),
+  examScr:new THREE.MeshStandardMaterial({ color: 0x2a1a3a, emissive: 0x8a5aaa, emissiveIntensity: 0.7 }),
+  accent: new THREE.MeshStandardMaterial({ color: 0xd2a8ff, roughness: 0.6 }),
+  leaf:   new THREE.MeshStandardMaterial({ color: 0x4a8a4a, roughness: 0.8 }),
+  pot:    new THREE.MeshStandardMaterial({ color: 0xc0603a, roughness: 0.75 }),
+  tooth:  new THREE.MeshStandardMaterial({ color: 0xf5efe0, roughness: 0.45 }),
+  glass:  new THREE.MeshStandardMaterial({ color: 0xa8c8e0, roughness: 0.15, transparent: true, opacity: 0.5, metalness: 0.3 }),
+  shadow: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.13, depthWrite: false }),
+};
+
+function box(w, h, d, mat, x=0, y=0, z=0) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  return m;
+}
+function cyl(rt, rb, h, mat, x=0, y=0, z=0, seg=16) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+  m.position.set(x, y, z);
+  return m;
+}
+function shadowDisc(r, x, z) {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(r, 20), M.shadow);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(x, 0.02, z);
+  return m;
+}
+
+const interactives = [];
+
+function labelSprite(text) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 140;
+  const ctx = c.getContext('2d');
+  const r = 60;
+  ctx.fillStyle = 'rgba(210,168,255,0.95)';
+  ctx.beginPath();
+  ctx.moveTo(r, 10);
+  ctx.lineTo(512 - r, 10);
+  ctx.quadraticCurveTo(512, 10, 512, 10 + r);
+  ctx.lineTo(512, 130 - r);
+  ctx.quadraticCurveTo(512, 130, 512 - r, 130);
+  ctx.lineTo(r, 130);
+  ctx.quadraticCurveTo(0, 130, 0, 130 - r);
+  ctx.lineTo(0, 10 + r);
+  ctx.quadraticCurveTo(0, 10, r, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#1a1410';
+  ctx.font = 'bold 58px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, 74);
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthTest: false, depthWrite: false
+  }));
+  spr.scale.set(1.5, 0.41, 1);
+  spr.renderOrder = 999;
+  return spr;
+}
+
+function register(group, url, label) {
+  const bb = new THREE.Box3().setFromObject(group);
+  const size = new THREE.Vector3(); bb.getSize(size);
+  const center = new THREE.Vector3(); bb.getCenter(center);
+
+  const hit = new THREE.Mesh(
+    new THREE.BoxGeometry(Math.max(size.x*1.25, 0.7), Math.max(size.y*1.25, 0.7), Math.max(size.z*1.25, 0.7)),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+  );
+  hit.position.copy(center);
+  hit.userData.url = url;
+  hit.userData.label = label;
+  hit.userData.group = group;
+  group.add(hit);
+  interactives.push(hit);
+
+  const lab = labelSprite(label);
+  lab.position.set(center.x, bb.max.y + 0.5, center.z);
+  group.add(lab);
+}
+
+// ── Room dimensions ───────────────────────────
+const ROOM = 13;
+const WALL_H = 5.5;
+
+// Floor
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM, ROOM), M.floor);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
+
+// Grid lines
+const gridHelper = new THREE.GridHelper(ROOM, 13, 0xa08060, 0xa08060);
+gridHelper.material.opacity = 0.22;
+gridHelper.material.transparent = true;
+gridHelper.position.y = 0.005;
+scene.add(gridHelper);
+
+// Back wall
+scene.add(box(ROOM, WALL_H, 0.2, M.wall, 0, WALL_H/2, -ROOM/2));
+// Left wall
+const lw = box(0.2, WALL_H, ROOM, M.wallB, -ROOM/2, WALL_H/2, 0);
+scene.add(lw);
+// Skirting (small trim at base of walls)
+scene.add(box(ROOM, 0.15, 0.25, M.woodD, 0, 0.075, -ROOM/2 + 0.15));
+scene.add(box(0.25, 0.15, ROOM, M.woodD, -ROOM/2 + 0.15, 0.075, 0));
+
+// ══════════════════════════════════════════════
+// DENTAL CHAIR → Timeline
+// ══════════════════════════════════════════════
+const chair = new THREE.Group();
+chair.add(cyl(0.4, 0.5, 0.2, M.metal, 0, 0.1, 0));
+chair.add(cyl(0.13, 0.13, 0.6, M.metal, 0, 0.5, 0));
+chair.add(box(0.9, 0.16, 2.0, M.chair, 0, 0.85, 0));
+const chairBack = box(0.9, 0.16, 1.05, M.chair, 0, 1.1, -0.85);
+chairBack.rotation.x = -0.35;
+chair.add(chairBack);
+chair.add(box(0.9, 0.16, 0.5, M.chairD, 0, 1.38, -1.18));
+chair.add(box(0.12, 0.55, 0.75, M.chairD, -0.56, 1.02, -0.18));
+chair.add(box(0.12, 0.55, 0.75, M.chairD, 0.56, 1.02, -0.18));
+const chairHead = box(0.55, 0.24, 0.18, M.chairD, 0, 1.68, -1.28);
+chairHead.rotation.x = -0.18;
+chair.add(chairHead);
+// Small basin near chair
+chair.add(cyl(0.22, 0.2, 0.15, M.white, 0.85, 0.9, -0.5, 14));
+chair.add(cyl(0.05, 0.05, 0.55, M.metal, 0.85, 0.5, -0.5, 10));
+chair.position.set(-2.5, 0, 0.8);
+chair.rotation.y = 0.35;
+register(chair, 'index.html', 'Timeline');
+scene.add(chair);
+scene.add(shadowDisc(1.3, -2.5, 0.8));
+
+// ══════════════════════════════════════════════
+// WALL SCREEN → Learn
+// ══════════════════════════════════════════════
+const wallScreen = new THREE.Group();
+wallScreen.add(box(3.0, 1.8, 0.1, M.screenB, 0, 0, 0));
+wallScreen.add(box(2.85, 1.65, 0.03, M.screen, 0, 0, 0.06));
+for (let i = 0; i < 6; i++) {
+  wallScreen.add(box(2.3 - i*0.15, 0.07, 0.008, M.accent, -0.1, 0.65 - i*0.22, 0.08));
+}
+wallScreen.position.set(0.8, 2.9, -ROOM/2 + 0.15);
+register(wallScreen, 'learn.html', 'Learn');
+scene.add(wallScreen);
+
+// ══════════════════════════════════════════════
+// SHELF WITH TEETH MODELS → 3D
+// ══════════════════════════════════════════════
+const shelf = new THREE.Group();
+shelf.add(box(2.6, 0.12, 0.55, M.wood, 0, 0, 0));
+shelf.add(box(0.1, 0.42, 0.1, M.woodD, -1.15, -0.24, -0.18));
+shelf.add(box(0.1, 0.42, 0.1, M.woodD, 1.15, -0.24, -0.18));
+for (let i = 0; i < 4; i++) {
+  const t = new THREE.Group();
+  t.add(box(0.24, 0.2, 0.24, M.tooth, 0, 0.15, 0));
+  t.add(box(0.2, 0.11, 0.2, M.tooth, 0, 0.3, 0));
+  t.add(cyl(0.04, 0.075, 0.2, M.tooth, -0.055, 0, 0, 8));
+  t.add(cyl(0.04, 0.075, 0.2, M.tooth, 0.055, 0, 0, 8));
+  t.position.set(-0.9 + i * 0.6, 0.06, 0);
+  t.rotation.y = (i - 1.5) * 0.35;
+  shelf.add(t);
+}
+shelf.position.set(-ROOM/2 + 0.4, 2.4, 2.2);
+shelf.rotation.y = Math.PI / 2;
+register(shelf, 'tooth3d.html', '3D');
+scene.add(shelf);
+
+// Second shelf
+const shelf2 = new THREE.Group();
+shelf2.add(box(2.0, 0.12, 0.5, M.wood, 0, 0, 0));
+shelf2.add(box(0.1, 0.4, 0.1, M.woodD, -0.85, -0.22, -0.15));
+shelf2.add(box(0.1, 0.4, 0.1, M.woodD, 0.85, -0.22, -0.15));
+// Some small tools on it
+shelf2.add(cyl(0.03, 0.03, 0.3, M.metal, -0.5, 0.21, 0, 8));
+shelf2.add(cyl(0.03, 0.03, 0.28, M.metal, -0.2, 0.2, 0, 8));
+shelf2.add(cyl(0.05, 0.05, 0.18, M.glass, 0.4, 0.15, 0, 10));
+shelf2.position.set(-ROOM/2 + 0.4, 1.3, -1.5);
+shelf2.rotation.y = Math.PI / 2;
+scene.add(shelf2);
+
+// ══════════════════════════════════════════════
+// TRAY TABLE → Label
+// ══════════════════════════════════════════════
+const tray = new THREE.Group();
+tray.add(box(1.4, 0.08, 0.75, M.white, 0, 0.8, 0));
+[[-0.6, -0.28], [0.6, -0.28], [-0.6, 0.28], [0.6, 0.28]].forEach(([x, z]) => {
+  tray.add(cyl(0.04, 0.04, 0.8, M.metal, x, 0.4, z, 8));
+});
+tray.add(cyl(0.03, 0.03, 0.55, M.metal, -0.4, 0.89, -0.1, 8));
+tray.add(cyl(0.03, 0.03, 0.5, M.metal, -0.05, 0.89, -0.1, 8));
+tray.add(cyl(0.03, 0.03, 0.45, M.metal, 0.3, 0.89, -0.1, 8));
+tray.add(box(0.6, 0.04, 0.4, M.metal, 0, 0.86, 0.22));
+tray.position.set(2.2, 0, 2.6);
+register(tray, 'label3d.html', 'Label');
+scene.add(tray);
+scene.add(shadowDisc(1.0, 2.2, 2.6));
+
+// ══════════════════════════════════════════════
+// POSTER ON WALL → Viva
+// ══════════════════════════════════════════════
+const poster = new THREE.Group();
+poster.add(box(1.05, 1.4, 0.05, M.accent, 0, 0, 0));
+poster.add(box(0.95, 1.3, 0.02, M.white, 0, 0, 0.035));
+poster.add(box(0.75, 0.07, 0.008, M.accent, 0, 0.45, 0.055));
+poster.add(box(0.75, 0.055, 0.008, M.accent, 0, 0.28, 0.055));
+poster.add(box(0.65, 0.055, 0.008, M.accent, -0.05, 0.11, 0.055));
+poster.add(box(0.75, 0.055, 0.008, M.accent, 0, -0.06, 0.055));
+poster.add(box(0.6, 0.055, 0.008, M.accent, -0.075, -0.23, 0.055));
+poster.add(box(0.75, 0.055, 0.008, M.accent, 0, -0.4, 0.055));
+poster.position.set(3.6, 3.0, -ROOM/2 + 0.13);
+register(poster, 'viva.html', 'Viva');
+scene.add(poster);
+
+// ══════════════════════════════════════════════
+// EXAM DESK → Assignments
+// ══════════════════════════════════════════════
+const examDesk = new THREE.Group();
+// Desk surface
+examDesk.add(box(2.2, 0.1, 1.0, M.examD, 0, 0.78, 0));
+// Legs
+[[-1.0, -0.42], [1.0, -0.42], [-1.0, 0.42], [1.0, 0.42]].forEach(([x, z]) => {
+  examDesk.add(cyl(0.05, 0.05, 0.78, M.metal, x, 0.39, z, 8));
+});
+// Computer monitor on the desk
+const compBase = new THREE.Group();
+compBase.add(box(0.5, 0.06, 0.3, M.metal, 0, 0, 0));
+compBase.add(cyl(0.04, 0.04, 0.2, M.metal, 0, 0.13, 0, 10));
+compBase.add(box(1.1, 0.7, 0.05, M.screenB, 0, 0.58, 0));
+compBase.add(box(1.02, 0.62, 0.02, M.examScr, 0, 0.58, 0.04));
+// "lines" on the screen
+for (let i = 0; i < 5; i++) {
+  compBase.add(box(0.8 - i*0.08, 0.05, 0.005, M.accent, -0.05, 0.85 - i*0.15, 0.055));
+}
+compBase.position.set(0, 0.83, -0.15);
+examDesk.add(compBase);
+// Keyboard
+examDesk.add(box(0.7, 0.03, 0.22, M.white, 0, 0.85, 0.25));
+// Chair in front
+const exChair = new THREE.Group();
+exChair.add(cyl(0.03, 0.03, 0.42, M.metal, 0, 0.21, 0, 8));
+exChair.add(box(0.45, 0.06, 0.45, M.exam, 0, 0.42, 0));
+exChair.add(box(0.45, 0.55, 0.06, M.exam, 0, 0.7, -0.2));
+exChair.position.set(0, 0, 1.1);
+examDesk.add(exChair);
+
+examDesk.position.set(1.8, 0, -2.8);
+examDesk.rotation.y = -0.15;
+register(examDesk, 'assignments.html', 'Exam');
+scene.add(examDesk);
+scene.add(shadowDisc(1.6, 1.8, -2.8));
+
+// ══════════════════════════════════════════════
+// CABINET (decorative, no link)
+// ══════════════════════════════════════════════
+const cab = new THREE.Group();
+cab.add(box(1.5, 2.0, 0.6, M.white, 0, 1.0, 0));
+cab.add(box(0.06, 0.06, 0.08, M.metal, -0.35, 1.35, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, 0.35, 1.35, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, -0.35, 0.85, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, 0.35, 0.85, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, -0.35, 0.35, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, 0.35, 0.35, 0.32));
+cab.position.set(4.5, 0, -ROOM/2 + 0.5);
+scene.add(cab);
+scene.add(shadowDisc(0.9, 4.5, -ROOM/2 + 0.5));
+
+// ══════════════════════════════════════════════
+// X-RAY VIEWER on wall (decorative)
+// ══════════════════════════════════════════════
+const xray = new THREE.Group();
+xray.add(box(1.0, 0.75, 0.06, M.screenB, 0, 0, 0));
+xray.add(box(0.92, 0.67, 0.02, M.glass, 0, 0, 0.04));
+// Some "tooth roots" as small shapes behind
+xray.add(cyl(0.05, 0.06, 0.35, M.white, -0.25, 0, 0.02, 8));
+xray.add(cyl(0.05, 0.06, 0.35, M.white, -0.1, 0, 0.02, 8));
+xray.add(cyl(0.05, 0.06, 0.32, M.white, 0.15, 0.02, 0.02, 8));
+xray.add(cyl(0.05, 0.06, 0.32, M.white, 0.3, 0.02, 0.02, 8));
+xray.position.set(-2.5, 2.6, -ROOM/2 + 0.13);
+scene.add(xray);
+
+// ══════════════════════════════════════════════
+// PLANTS (decorative)
+// ══════════════════════════════════════════════
+function makePlant(x, z) {
+  const p = new THREE.Group();
+  p.add(cyl(0.28, 0.22, 0.45, M.pot, 0, 0.22, 0, 12));
+  p.add(cyl(0.04, 0.04, 0.55, M.leaf, 0, 0.72, 0, 8));
+  for (let i = 0; i < 4; i++) {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), M.leaf);
+    leaf.position.set(Math.cos(i * 1.6) * 0.2, 1.0 + i * 0.08, Math.sin(i * 1.6) * 0.2);
+    leaf.scale.set(1, 0.55, 0.35);
+    leaf.rotation.z = (i - 1.5) * 0.4;
+    leaf.rotation.y = i * 0.8;
+    p.add(leaf);
+  }
+  p.position.set(x, 0, z);
+  scene.add(p);
+  scene.add(shadowDisc(0.5, x, z));
+}
+makePlant(5.0, 4.5);
+makePlant(-5.0, 4.5);
+
+// ── Interaction ───────────────────────────────
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let hovered = null;
+
+function pickAt(clientX, clientY) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(interactives, false);
+  return hits.length > 0 ? hits[0].object : null;
+}
+
+function setHovered(hit) {
+  if (hovered === hit) return;
+  if (hovered && hovered.userData.group) hovered.userData.group.scale.setScalar(1);
+  hovered = hit;
+  if (hit) {
+    document.getElementById('info').textContent = '→ Open ' + hit.userData.label;
+    if (hit.userData.group) hit.userData.group.scale.setScalar(1.06);
+  } else {
+    document.getElementById('info').textContent = 'Drag to rotate · pinch to zoom · tap an object';
+  }
+}
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  const sx = e.clientX, sy = e.clientY;
+  const onUp = u => {
+    renderer.domElement.removeEventListener('pointerup', onUp);
+    if (Math.hypot(u.clientX - sx, u.clientY - sy) < 10) {
+      const hit = pickAt(u.clientX, u.clientY);
+      if (hit && hit.userData.url) window.location.href = hit.userData.url;
+    }
+  };
+  renderer.domElement.addEventListener('pointerup', onUp);
+});
+
+renderer.domElement.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  setHovered(pickAt(e.clientX, e.clientY));
+});
+renderer.domElement.addEventListener('pointerleave', () => setHovered(null));
+
+// ── Resize + loop ─────────────────────────────
+// ═════════ GUIDED TOUR ═════════
+const TOUR_START = [3.6, 4.6];
+const WALK_SPEED = 2.6;
+const STATIONS = [
+  { name: "Age estimation", short: "Age", pos: [0.8, -4.4], look: [0.8, -6.3], via: [[3.6, -4.4]], steps: [
+    { t: "<b>Methods of age estimation.</b> Age, especially in the earlier years, can be determined from: (1) general physical features, (2) teeth, (3) ossification of bones, (4) secondary sex characters, and (5) general development in the case of children.", link: ["learn.html", "Open Learn"] },
+    { t: "<b>General physical features.</b> Height and weight play a significant role in age assessment until puberty." },
+    { t: "<b>Length.</b> A newborn, irrespective of sex, averages about 50 cm. The growth pattern in the initial years is: 61 cm in the first year, 70 cm in the second, 78 cm in the third and 86 cm in the fourth." },
+    { t: "After this stage, during the first growth spurt, height becomes an unreliable indicator because of factors such as malnutrition and infectious diseases." },
+    { t: "<b>Weight.</b> Birth weight averages about 2.5 kg. It doubles by 5 months and triples by the first year. Beyond the first year, weight is no longer a reliable factor for age assessment." }
+  ]},
+  { name: "Teeth: development and eruption", short: "Teeth", pos: [-0.7, 0.6], look: [-2.5, 0.8], via: [[-0.5, -3.0]], steps: [
+    { t: "<b>Tooth development.</b> The alveolar cavities begin to develop around the third or fourth month of intrauterine life. Development starts with a cellular tooth germ in the alveolar bone, in the shape of the crown. Enamel and dentin are laid down and calcified within it, and the crown is completely formed and calcified before any positional change occurs." },
+    { t: "<b>At birth,</b> the rudiments of all the temporary teeth and of the first permanent molars may be found in the jaws, and a well-formed neonatal line is present on the teeth." },
+    { t: "<b>Root and eruption.</b> Root formation begins after the crown is complete. As the root elongates, the crown erupts through the bone. Teeth calcify from crown to neck to roots. During eruption of a permanent tooth, the root of its deciduous predecessor is absorbed until only the crown remains, and the unsupported crown falls off." },
+    { t: "<b>Temporary teeth.</b> There are 20: in each jaw, 4 incisors, 2 canines and 4 molars. Dentition may be delayed in ill-nourished children, in rickets and in hypothyroidism, while in syphilis teeth may be premature or even present at birth. By age 4, spacing typically appears between the deciduous teeth." },
+    { t: "<b>Eruption by age.</b> At 6 to 7 years the first permanent molars erupt behind the second temporary molars, and the temporary teeth begin to fall. Between 7 and 12 years, 24 teeth are present. At 9 years: 12 permanent teeth (8 incisors, 4 first molars). At 10: 16 permanent and 8 deciduous. At 11: 20 permanent and 4 deciduous (second molars). Mixed dentition is seen up to 12 years. By 14 years: 28 permanent teeth and no deciduous teeth.", link: ["index.html", "Open the eruption Timeline"] },
+    { t: "<b>Permanent teeth.</b> Adults have 32: in each jaw, 4 incisors, 2 canines, 4 premolars and 6 molars. <i>Superadded</i> teeth have no deciduous predecessors and erupt behind the temporary teeth. All the permanent molars are superadded, six in each jaw. <i>Successional</i> teeth erupt in place of deciduous teeth: ten in each jaw, with the premolars replacing the deciduous molars." },
+    { t: "<b>Structure.</b> Each tooth has a crown, a neck and a root embedded in the jawbone. Dentin is covered by enamel on the crown and by cementum on the root, and the root is attached to the alveolar bone by the periodontal membrane." },
+    { t: "<b>Morphology.</b> Incisors: chisel-shaped crown, single root. Canines: larger, conical crown, single thicker root. Premolars (bicuspids): two cusps, root usually single. Molars: largest, with 3, 4 or 5 cusps; upper molars have three roots and lower molars two. Deciduous teeth resemble the permanent teeth of the same name." },
+    { t: "<b>Eruption rules.</b> Both sets erupt earlier in the lower jaw, except the lateral incisors, which appear earlier in the upper jaw. Eruption tends to be earlier in females. Dental and skeletal ages correspond closely in the male, but in the female the skeletal age is generally about a year ahead of the dental age." },
+    { t: "<b>Factors influencing dental changes.</b> Ethnic, cultural, hereditary, environmental, endocrine and nutritional factors all play a part. Eruption tends to occur earlier in warmer climates and in urban areas." },
+    { t: "<b>Dental age by period.</b> From birth to 14 years, the formation of root and crown, the stage of eruption and the mixture of temporary and permanent teeth are useful, and in a child teeth give better results than the skeleton. From 14 to 20 years, age is based on the development of the third molar, with an accuracy of about ±3 years. Fully erupted third molars indicate an age above 17 years. Third molars trapped for lack of jaw space are impacted teeth. All teeth can be seen on one orthopantogram." }
+  ]},
+  { name: "Gustafson’s method", short: "Gustafson", pos: [2.2, 3.7], look: [2.2, 2.6], via: [[0.4, 3.7]], steps: [
+    { t: "<b>Adults over 21 years.</b> Age is estimated from physiological changes in dental tissues (Fig 4.22), remembered by the acronym <b>APSRTC</b>: Attrition, Periodontosis, Secondary dentin, Root resorption, Transparency of the root, Cementum apposition.", link: ["gustafson.html", "Open the Gustafson overview"] },
+    { t: "<b>A · Attrition.</b> Wear from chewing destroys the occlusal surface gradually: first the enamel, then the dentin, and at last the pulp is exposed in old age. It depends on the functional use of the teeth and the hardness of the enamel.", link: ["attrition.html", "Open Attrition"] },
+    { t: "<b>P · Periodontosis.</b> With advancing age the gums and periodontal tissues regress, gradually exposing the necks and adjacent roots, so the teeth become loose and fall off. Poor oral hygiene increases it.", link: ["periodontosis.html", "Open Periodontosis"] },
+    { t: "<b>S · Secondary dentin.</b> It develops from the walls inside the pulp cavity and reduces its size. It is first deposited at the pulp chamber, then extends towards the apex, and may fill the cavity completely. It is partly due to ageing and partly to caries and periodontosis.", link: ["secondary.html", "Open Secondary dentin"] },
+    { t: "<b>R · Root resorption.</b> It involves both cementum and dentin, which show sharp grooves. Absorption of the root starts at the apex and extends upwards. It usually occurs in late age and may be due to a pathological process.", link: ["resorption.html", "Open Root resorption"] },
+    { t: "<b>T · Transparency of the root.</b> It is not seen until about 30 years. The dentinal canals fill with mineral, so the dentin becomes translucent and then transparent. It proceeds from below upwards in the lower jaw and from above downwards in the upper jaw. It is the most reliable of all the criteria.", link: ["transparency.html", "Open Transparency"] },
+    { t: "<b>C · Cementum apposition.</b> The cementum increases in thickness, especially near the end of the root.", link: ["cementum.html", "Open Cementum"] },
+    { t: "<b>Procedure.</b> Before the tooth is extracted from a body, the degree of periodontosis is estimated. The extracted tooth is ground on glass slabs to about 1 mm to judge transparency, then to about 0.25 mm for microscopic examination. Anterior teeth are more suitable, the merit decreases from incisors to premolars, and the third molar is quite unsuitable. These changes are absent at 15 years.", link: ["label3d.html", "Open Label"] },
+    { t: "<b>Scoring.</b> Each change is given 0 to 3 points: stage 0 no change, stage 1 beginning of change, stage 2 obvious change, stage 3 maximum change. The result is corrected for standard deviation to estimate age, with an error margin of ±4 to 7 years, and the error increases above 50 years. Age can also be read directly from the graph on which the regression line is plotted. Johanson’s modification is considered more accurate." },
+    { t: "<b>Other tooth methods.</b> <i>Boyde’s method:</i> cross striations in the enamel are daily incremental lines, so counting them from the neonatal line gives age in days, which is useful for a dead infant. <i>Stack’s method:</i> estimates the age of infants from the weight and height of the erupting teeth." }
+  ]}
+];
+
+const tcss = document.createElement('style');
+tcss.textContent = `
+#tourBtn{position:absolute;top:50px;right:12px;z-index:5;border:0;border-radius:16px;padding:7px 12px;background:#1f6feb;color:#fff;font-size:12px;font-weight:700}
+#tourCard{position:absolute;left:8px;right:8px;bottom:8px;margin:0 auto;max-width:560px;z-index:6;background:rgba(22,27,34,.96);color:#e6edf3;border:1px solid #30363d;border-radius:14px;padding:10px 12px;display:none;font-size:13px;line-height:1.5}
+#tourCard .top{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:6px}
+#tourCard .chip,#tourCard .ctl button,#tourCard .x{font-family:inherit;font-size:11px;font-weight:600;border:1px solid #30363d;background:#0d1117;color:#e6edf3;border-radius:14px;padding:5px 10px}
+#tourCard .chip.on{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+#tourCard .x{padding:5px 9px}
+#tcChips{display:flex;gap:5px;flex-wrap:wrap}
+#tourCard .ttl{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#d2a8ff;margin-bottom:4px}
+#tcText{max-height:24vh;overflow:auto}
+#tcText b{color:#f0883e}
+#tcLink a{display:inline-block;margin-top:6px;padding:5px 10px;border-radius:12px;background:#1f6feb;color:#fff;text-decoration:none;font-size:12px;font-weight:600}
+#tourCard .ctl{display:flex;gap:6px;margin-top:8px}
+#tourCard .ctl button{flex:1;padding:8px 4px}
+#tourCard .ctl button.on{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+#tourCard .ctl button:disabled{opacity:.4}
+`;
+document.head.appendChild(tcss);
+
+const $ = id => document.getElementById(id);
+const tourBtn = document.createElement('button');
+tourBtn.id = 'tourBtn'; tourBtn.textContent = '▶ Guided tour';
+document.body.appendChild(tourBtn);
+const card = document.createElement('div');
+card.id = 'tourCard';
+card.innerHTML = '<div class="top"><div id="tcChips"></div><button class="x" id="tcClose">✕</button></div>' +
+  '<div class="ttl"><b id="tcTitle"></b><span id="tcCount"></span></div>' +
+  '<div id="tcText"></div><div id="tcLink"></div>' +
+  '<div class="ctl"><button id="tcPrev">◀ Prev</button><button id="tcNext">Next ▶</button><button id="tcAuto">Auto</button><button id="tcVoice">🔇 Voice</button></div>';
+document.body.appendChild(card);
+
+// ── the guide ──
+const guide = new THREE.Group();
+{
+  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a77a, roughness: 0.7 });
+  const hairM = new THREE.MeshStandardMaterial({ color: 0x2a1d17, roughness: 0.9 });
+  const pants = new THREE.MeshStandardMaterial({ color: 0x2f3b52, roughness: 0.8 });
+  const coat = new THREE.MeshStandardMaterial({ color: 0xf4f6f8, roughness: 0.7 });
+  const limb = (w, h, d, mat, x, y) => { const g = new THREE.Group(); g.position.set(x, y, 0); g.add(box(w, h, d, mat, 0, -h / 2, 0)); return g; };
+  const legL = limb(0.17, 0.85, 0.17, pants, -0.12, 0.85), legR = limb(0.17, 0.85, 0.17, pants, 0.12, 0.85);
+  const armL = limb(0.12, 0.62, 0.12, coat, -0.32, 1.52), armR = limb(0.12, 0.62, 0.12, coat, 0.32, 1.52);
+  armL.add(box(0.1, 0.1, 0.1, skin, 0, -0.66, 0)); armR.add(box(0.1, 0.1, 0.1, skin, 0, -0.66, 0));
+  guide.add(legL, legR, armL, armR);
+  guide.add(box(0.5, 0.72, 0.27, coat, 0, 1.2, 0));
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 14, 12), skin); head.position.set(0, 1.78, 0); guide.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 10, 0, Math.PI * 2, 0, Math.PI * 0.55), hairM); hair.position.set(0, 1.8, -0.01); guide.add(hair);
+  const sh = new THREE.Mesh(new THREE.CircleGeometry(0.35, 16), M.shadow); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.03; guide.add(sh);
+  guide.userData = { legL, legR, armL, armR };
+  guide.visible = false;
+  scene.add(guide);
+}
+
+// ── state ──
+let tourOn = false, mode = 'idle', curSt = -1, step = 0, tS = 0, tK = 0, tPath = [], tPi = 0;
+let yawT = Math.PI, ph = 0, auto = false, voiceOn = false, autoTimer = null;
+const clk = new THREE.Clock(), fv = new THREE.Vector3(), fg = new THREE.Vector3();
+
+function turn(c, g, k) { const d = Math.atan2(Math.sin(g - c), Math.cos(g - c)); return c + d * Math.min(1, k); }
+function faceYaw(i) {
+  const S = STATIONS[i], y0 = Math.atan2(S.look[0] - S.pos[0], S.look[1] - S.pos[1]);
+  const yc = Math.atan2(11 - S.pos[0], 11 - S.pos[1]);
+  const d = Math.atan2(Math.sin(yc - y0), Math.cos(yc - y0));
+  return y0 + Math.sign(d) * Math.min(Math.abs(d), 0.55);   // stand turned slightly towards the viewer
+}
+function pathBetween(a, b) {
+  const out = [];
+  if (b > a) { for (let k = a + 1; k <= b; k++) { STATIONS[k].via.forEach(p => out.push(p)); out.push(STATIONS[k].pos); } }
+  else { for (let k = a; k > b; k--) { STATIONS[k].via.slice().reverse().forEach(p => out.push(p)); out.push(STATIONS[k - 1].pos); } }
+  return out;
+}
+function save() { try { sessionStorage.setItem('clinicTour', JSON.stringify({ on: tourOn, st: curSt, step: step })); } catch (e) {} }
+function speak(txt) {
+  try {
+    speechSynthesis.cancel();
+    if (!voiceOn) return;
+    const u = new SpeechSynthesisUtterance(txt.replace(/<[^>]+>/g, ' '));
+    u.lang = 'en-IN'; u.rate = 0.95;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function isLast() { return curSt === STATIONS.length - 1 && step === STATIONS[curSt].steps.length - 1; }
+function schedule(txt) {
+  clearTimeout(autoTimer);
+  if (!auto) return;
+  const words = txt.replace(/<[^>]+>/g, ' ').split(/\s+/).length;
+  autoTimer = setTimeout(() => { if (isLast()) { auto = false; syncBtns(); } else next(); }, (voiceOn ? 3000 : 2500) + words * (voiceOn ? 420 : 330));
+}
+function syncBtns() {
+  $('tcAuto').classList.toggle('on', auto); $('tcAuto').textContent = auto ? 'Auto ⏸' : 'Auto ▶';
+  $('tcVoice').classList.toggle('on', voiceOn); $('tcVoice').textContent = voiceOn ? '🔊 Voice on' : '🔇 Voice off';
+}
+function hl(i) { [...$('tcChips').children].forEach((c, j) => c.classList.toggle('on', j === i)); }
+
+function showStep() {
+  const S = STATIONS[curSt]; if (!S) return;
+  const stp = S.steps[step];
+  hl(curSt);
+  $('tcTitle').textContent = 'Station ' + (curSt + 1) + ' · ' + S.name;
+  $('tcCount').textContent = (step + 1) + ' / ' + S.steps.length;
+  $('tcText').innerHTML = stp.t; $('tcText').scrollTop = 0;
+  const L = $('tcLink'); L.innerHTML = '';
+  if (stp.link) { const a = document.createElement('a'); a.href = stp.link[0]; a.textContent = stp.link[1] + ' ↗'; L.appendChild(a); }
+  $('tcPrev').disabled = (curSt === 0 && step === 0);
+  $('tcNext').textContent = isLast() ? '↺ Restart' : 'Next ▶';
+  save(); speak(stp.t); schedule(stp.t);
+}
+function showWalk() {
+  const S = STATIONS[tS];
+  hl(tS);
+  $('tcTitle').textContent = 'Walking to station ' + (tS + 1) + ' · ' + S.name + '…';
+  $('tcCount').textContent = '';
+  $('tcText').innerHTML = 'Follow the guide. Tap <b>Skip</b> to go straight there.';
+  $('tcLink').innerHTML = '';
+  $('tcPrev').disabled = true; $('tcNext').textContent = 'Skip ▶';
+}
+function settle() { const S = STATIONS[tS]; guide.position.set(S.pos[0], 0, S.pos[1]); curSt = tS; step = tK; mode = 'talk'; }
+function arrive() { curSt = tS; step = tK; mode = 'talk'; showStep(); }
+function goTo(s, k) {
+  clearTimeout(autoTimer); try { speechSynthesis.cancel(); } catch (e) {}
+  if (mode === 'walk') settle();
+  tS = s; tK = k; tPath = pathBetween(curSt, s); tPi = 0;
+  if (!tPath.length) { curSt = s; step = k; mode = 'talk'; showStep(); return; }
+  mode = 'walk'; showWalk();
+}
+function next() {
+  if (!tourOn) return;
+  if (mode === 'walk') { settle(); showStep(); return; }
+  const S = STATIONS[curSt];
+  if (step < S.steps.length - 1) { step++; showStep(); }
+  else if (curSt < STATIONS.length - 1) goTo(curSt + 1, 0);
+  else { auto = false; syncBtns(); goTo(0, 0); }
+}
+function prev() {
+  if (!tourOn || mode === 'walk') return;
+  if (step > 0) { step--; showStep(); }
+  else if (curSt > 0) goTo(curSt - 1, STATIONS[curSt - 1].steps.length - 1);
+}
+function openCard() { card.style.display = 'block'; $('info').style.display = 'none'; tourBtn.style.display = 'none'; }
+function startTour() {
+  tourOn = true; guide.visible = true;
+  guide.position.set(TOUR_START[0], 0, TOUR_START[1]); guide.rotation.y = Math.PI; yawT = Math.PI; curSt = -1; mode = 'idle';
+  openCard(); goTo(0, 0);
+}
+function closeTour() {
+  tourOn = false; auto = false; voiceOn = false; mode = 'idle';
+  clearTimeout(autoTimer); try { speechSynthesis.cancel(); } catch (e) {}
+  guide.visible = false; card.style.display = 'none'; $('info').style.display = ''; tourBtn.style.display = '';
+  syncBtns(); save();
+}
+
+STATIONS.forEach((S, i) => {
+  const b = document.createElement('button'); b.className = 'chip'; b.textContent = (i + 1) + ' · ' + S.short;
+  b.onclick = () => { if (!tourOn) return; if (i === curSt && mode === 'talk') { step = 0; showStep(); } else goTo(i, 0); };
+  $('tcChips').appendChild(b);
+});
+$('tcPrev').onclick = prev; $('tcNext').onclick = next; $('tcClose').onclick = closeTour; tourBtn.onclick = startTour;
+$('tcAuto').onclick = () => { auto = !auto; syncBtns(); if (auto && mode === 'talk') schedule(STATIONS[curSt].steps[step].t); else clearTimeout(autoTimer); };
+$('tcVoice').onclick = () => { voiceOn = !voiceOn; syncBtns(); if (mode === 'talk') speak(STATIONS[curSt].steps[step].t); else { try { speechSynthesis.cancel(); } catch (e) {} } };
+syncBtns();
+
+function tourTick() {
+  const dt = Math.min(clk.getDelta(), 0.05), U = guide.userData;
+  const ease = (part, target) => { part.rotation.x += (target - part.rotation.x) * Math.min(1, 10 * dt); };
+  if (tourOn) {
+    if (mode === 'walk') {
+      const p = tPath[tPi], dx = p[0] - guide.position.x, dz = p[1] - guide.position.z, dist = Math.hypot(dx, dz), sl = WALK_SPEED * dt;
+      if (dist <= sl) { guide.position.x = p[0]; guide.position.z = p[1]; tPi++; if (tPi >= tPath.length) arrive(); }
+      else { guide.position.x += dx / dist * sl; guide.position.z += dz / dist * sl; yawT = Math.atan2(dx, dz); }
+      ph += dt * 9;
+      ease(U.legL, Math.sin(ph) * 0.6); ease(U.legR, -Math.sin(ph) * 0.6);
+      ease(U.armL, -Math.sin(ph) * 0.5); ease(U.armR, Math.sin(ph) * 0.5);
+    } else if (mode === 'talk') {
+      yawT = faceYaw(curSt);
+      ease(U.legL, 0); ease(U.legR, 0); ease(U.armL, 0); ease(U.armR, -1.35);   // right arm points at the object
+    }
+    guide.rotation.y = turn(guide.rotation.y, yawT, 8 * dt);
+  }
+  // camera drifts to follow the guide (and returns to the room centre when the tour is closed)
+  if (tourOn) fg.set(guide.position.x * 0.55, 0.8, guide.position.z * 0.55); else fg.set(0, 0.8, 0);
+  fv.copy(fg).sub(controls.target);
+  if (fv.lengthSq() > 1e-6) { fv.multiplyScalar(Math.min(1, 2.2 * dt)); controls.target.add(fv); camera.position.add(fv); }
+}
+
+// resume where the student left off (e.g. after opening a 3D page and coming back)
+try {
+  const sv = JSON.parse(sessionStorage.getItem('clinicTour') || 'null');
+  if (sv && sv.on && STATIONS[sv.st]) {
+    tourOn = true; guide.visible = true; curSt = sv.st; step = Math.min(sv.step || 0, STATIONS[sv.st].steps.length - 1);
+    guide.position.set(STATIONS[curSt].pos[0], 0, STATIONS[curSt].pos[1]);
+    guide.rotation.y = faceYaw(curSt); yawT = guide.rotation.y;
+    mode = 'talk'; openCard(); showStep();
+  }
+} catch (e) {}
+// ═════════ END GUIDED TOUR ═════════
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.03;
+  interactives.forEach(hit => {
+    const g = hit.userData.group;
+    if (g) {
+      g.children.forEach(c => {
+        if (c.isSprite) {
+          c.material.opacity = 0.85 + Math.sin(t) * 0.12;
+        }
+      });
+    }
+  });
+  controls.update();
+  tourTick();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body></html>

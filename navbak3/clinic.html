@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Dental Clinic</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;overflow:hidden;background:#c8a882;font-family:-apple-system,sans-serif}
+#app{width:100vw;height:100vh;display:block}
+.nav{position:absolute;top:10px;left:10px;display:flex;gap:5px;z-index:5;flex-wrap:wrap;max-width:75vw}
+.nav a{padding:5px 9px;border-radius:6px;background:rgba(22,27,34,.9);color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.hint{position:absolute;top:12px;right:12px;background:rgba(210,168,255,.95);color:#1a1410;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:600;z-index:5}
+.info{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.92);color:#e6edf3;padding:8px 16px;border-radius:20px;font-size:12px;border:1px solid #30363d;z-index:5;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html">Viva</a>
+<a href="gustafson.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Gustafson</a>
+<a href="attrition.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Attrition</a>
+<a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
+<a href="secondary.html">Secondary dentin</a>
+<a href="resorption.html">Root resorption</a>
+<a href="assignments.html">Exam</a>
+<a href="clinic.html" class="active">Clinic</a>
+</div>
+<div class="hint">Tap any object</div>
+<div class="info" id="info">Drag to rotate · pinch to zoom · tap an object</div>
+<div id="app"></div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "./libs/three.module.js",
+    "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+} }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ── Scene ─────────────────────────────────────
+const scene = new THREE.Scene();
+// Warm tone that blends with the floor so no empty black is visible
+scene.background = new THREE.Color(0xc8a882);
+scene.fog = new THREE.Fog(0xc8a882, 26, 44);
+
+// Perspective camera — fills the viewport naturally
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(11, 13, 11);
+camera.lookAt(0, 0.8, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.getElementById('app').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan = false;
+controls.target.set(0, 0.8, 0);
+controls.minPolarAngle = Math.PI / 8;
+controls.maxPolarAngle = Math.PI / 2.15;
+controls.minAzimuthAngle = -Math.PI / 2.5;
+controls.maxAzimuthAngle = Math.PI / 2.5;
+controls.minDistance = 8;
+controls.maxDistance = 26;
+
+// ── Lights ────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff, 0.82));
+const sun = new THREE.DirectionalLight(0xfff5e0, 0.85);
+sun.position.set(8, 18, 6);
+scene.add(sun);
+const fill = new THREE.DirectionalLight(0x88aaff, 0.3);
+fill.position.set(-8, 6, -6);
+scene.add(fill);
+
+// ── Materials ─────────────────────────────────
+const M = {
+  floor:  new THREE.MeshStandardMaterial({ color: 0xc8a882, roughness: 0.92 }),
+  wall:   new THREE.MeshStandardMaterial({ color: 0xeadfc9, roughness: 0.95 }),
+  wallB:  new THREE.MeshStandardMaterial({ color: 0xe0d4bc, roughness: 0.95 }),
+  chair:  new THREE.MeshStandardMaterial({ color: 0x4a9ba8, roughness: 0.6 }),
+  chairD: new THREE.MeshStandardMaterial({ color: 0x3a7a8a, roughness: 0.6 }),
+  exam:   new THREE.MeshStandardMaterial({ color: 0xd28a4a, roughness: 0.6 }),
+  examD:  new THREE.MeshStandardMaterial({ color: 0xa86a3a, roughness: 0.6 }),
+  metal:  new THREE.MeshStandardMaterial({ color: 0x7a7a8a, roughness: 0.4, metalness: 0.4 }),
+  white:  new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.7 }),
+  wood:   new THREE.MeshStandardMaterial({ color: 0xa67c52, roughness: 0.85 }),
+  woodD:  new THREE.MeshStandardMaterial({ color: 0x8a6442, roughness: 0.85 }),
+  screen: new THREE.MeshStandardMaterial({ color: 0x1a2f4a, emissive: 0x2a6a9a, emissiveIntensity: 0.55 }),
+  screenB:new THREE.MeshStandardMaterial({ color: 0x0a1a2a, roughness: 0.5 }),
+  examScr:new THREE.MeshStandardMaterial({ color: 0x2a1a3a, emissive: 0x8a5aaa, emissiveIntensity: 0.7 }),
+  accent: new THREE.MeshStandardMaterial({ color: 0xd2a8ff, roughness: 0.6 }),
+  leaf:   new THREE.MeshStandardMaterial({ color: 0x4a8a4a, roughness: 0.8 }),
+  pot:    new THREE.MeshStandardMaterial({ color: 0xc0603a, roughness: 0.75 }),
+  tooth:  new THREE.MeshStandardMaterial({ color: 0xf5efe0, roughness: 0.45 }),
+  glass:  new THREE.MeshStandardMaterial({ color: 0xa8c8e0, roughness: 0.15, transparent: true, opacity: 0.5, metalness: 0.3 }),
+  shadow: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.13, depthWrite: false }),
+};
+
+function box(w, h, d, mat, x=0, y=0, z=0) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  return m;
+}
+function cyl(rt, rb, h, mat, x=0, y=0, z=0, seg=16) {
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
+  m.position.set(x, y, z);
+  return m;
+}
+function shadowDisc(r, x, z) {
+  const m = new THREE.Mesh(new THREE.CircleGeometry(r, 20), M.shadow);
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(x, 0.02, z);
+  return m;
+}
+
+const interactives = [];
+
+function labelSprite(text) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 140;
+  const ctx = c.getContext('2d');
+  const r = 60;
+  ctx.fillStyle = 'rgba(210,168,255,0.95)';
+  ctx.beginPath();
+  ctx.moveTo(r, 10);
+  ctx.lineTo(512 - r, 10);
+  ctx.quadraticCurveTo(512, 10, 512, 10 + r);
+  ctx.lineTo(512, 130 - r);
+  ctx.quadraticCurveTo(512, 130, 512 - r, 130);
+  ctx.lineTo(r, 130);
+  ctx.quadraticCurveTo(0, 130, 0, 130 - r);
+  ctx.lineTo(0, 10 + r);
+  ctx.quadraticCurveTo(0, 10, r, 10);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#1a1410';
+  ctx.font = 'bold 58px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 256, 74);
+  const tex = new THREE.CanvasTexture(c);
+  tex.anisotropy = 4;
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthTest: false, depthWrite: false
+  }));
+  spr.scale.set(1.5, 0.41, 1);
+  spr.renderOrder = 999;
+  return spr;
+}
+
+function register(group, url, label) {
+  const bb = new THREE.Box3().setFromObject(group);
+  const size = new THREE.Vector3(); bb.getSize(size);
+  const center = new THREE.Vector3(); bb.getCenter(center);
+
+  const hit = new THREE.Mesh(
+    new THREE.BoxGeometry(Math.max(size.x*1.25, 0.7), Math.max(size.y*1.25, 0.7), Math.max(size.z*1.25, 0.7)),
+    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+  );
+  hit.position.copy(center);
+  hit.userData.url = url;
+  hit.userData.label = label;
+  hit.userData.group = group;
+  group.add(hit);
+  interactives.push(hit);
+
+  const lab = labelSprite(label);
+  lab.position.set(center.x, bb.max.y + 0.5, center.z);
+  group.add(lab);
+}
+
+// ── Room dimensions ───────────────────────────
+const ROOM = 13;
+const WALL_H = 5.5;
+
+// Floor
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(ROOM, ROOM), M.floor);
+floor.rotation.x = -Math.PI / 2;
+scene.add(floor);
+
+// Grid lines
+const gridHelper = new THREE.GridHelper(ROOM, 13, 0xa08060, 0xa08060);
+gridHelper.material.opacity = 0.22;
+gridHelper.material.transparent = true;
+gridHelper.position.y = 0.005;
+scene.add(gridHelper);
+
+// Back wall
+scene.add(box(ROOM, WALL_H, 0.2, M.wall, 0, WALL_H/2, -ROOM/2));
+// Left wall
+const lw = box(0.2, WALL_H, ROOM, M.wallB, -ROOM/2, WALL_H/2, 0);
+scene.add(lw);
+// Skirting (small trim at base of walls)
+scene.add(box(ROOM, 0.15, 0.25, M.woodD, 0, 0.075, -ROOM/2 + 0.15));
+scene.add(box(0.25, 0.15, ROOM, M.woodD, -ROOM/2 + 0.15, 0.075, 0));
+
+// ══════════════════════════════════════════════
+// DENTAL CHAIR → Timeline
+// ══════════════════════════════════════════════
+const chair = new THREE.Group();
+chair.add(cyl(0.4, 0.5, 0.2, M.metal, 0, 0.1, 0));
+chair.add(cyl(0.13, 0.13, 0.6, M.metal, 0, 0.5, 0));
+chair.add(box(0.9, 0.16, 2.0, M.chair, 0, 0.85, 0));
+const chairBack = box(0.9, 0.16, 1.05, M.chair, 0, 1.1, -0.85);
+chairBack.rotation.x = -0.35;
+chair.add(chairBack);
+chair.add(box(0.9, 0.16, 0.5, M.chairD, 0, 1.38, -1.18));
+chair.add(box(0.12, 0.55, 0.75, M.chairD, -0.56, 1.02, -0.18));
+chair.add(box(0.12, 0.55, 0.75, M.chairD, 0.56, 1.02, -0.18));
+const chairHead = box(0.55, 0.24, 0.18, M.chairD, 0, 1.68, -1.28);
+chairHead.rotation.x = -0.18;
+chair.add(chairHead);
+// Small basin near chair
+chair.add(cyl(0.22, 0.2, 0.15, M.white, 0.85, 0.9, -0.5, 14));
+chair.add(cyl(0.05, 0.05, 0.55, M.metal, 0.85, 0.5, -0.5, 10));
+chair.position.set(-2.5, 0, 0.8);
+chair.rotation.y = 0.35;
+register(chair, 'index.html', 'Timeline');
+scene.add(chair);
+scene.add(shadowDisc(1.3, -2.5, 0.8));
+
+// ══════════════════════════════════════════════
+// WALL SCREEN → Learn
+// ══════════════════════════════════════════════
+const wallScreen = new THREE.Group();
+wallScreen.add(box(3.0, 1.8, 0.1, M.screenB, 0, 0, 0));
+wallScreen.add(box(2.85, 1.65, 0.03, M.screen, 0, 0, 0.06));
+for (let i = 0; i < 6; i++) {
+  wallScreen.add(box(2.3 - i*0.15, 0.07, 0.008, M.accent, -0.1, 0.65 - i*0.22, 0.08));
+}
+wallScreen.position.set(0.8, 2.9, -ROOM/2 + 0.15);
+register(wallScreen, 'learn.html', 'Learn');
+scene.add(wallScreen);
+
+// ══════════════════════════════════════════════
+// SHELF WITH TEETH MODELS → 3D
+// ══════════════════════════════════════════════
+const shelf = new THREE.Group();
+shelf.add(box(2.6, 0.12, 0.55, M.wood, 0, 0, 0));
+shelf.add(box(0.1, 0.42, 0.1, M.woodD, -1.15, -0.24, -0.18));
+shelf.add(box(0.1, 0.42, 0.1, M.woodD, 1.15, -0.24, -0.18));
+for (let i = 0; i < 4; i++) {
+  const t = new THREE.Group();
+  t.add(box(0.24, 0.2, 0.24, M.tooth, 0, 0.15, 0));
+  t.add(box(0.2, 0.11, 0.2, M.tooth, 0, 0.3, 0));
+  t.add(cyl(0.04, 0.075, 0.2, M.tooth, -0.055, 0, 0, 8));
+  t.add(cyl(0.04, 0.075, 0.2, M.tooth, 0.055, 0, 0, 8));
+  t.position.set(-0.9 + i * 0.6, 0.06, 0);
+  t.rotation.y = (i - 1.5) * 0.35;
+  shelf.add(t);
+}
+shelf.position.set(-ROOM/2 + 0.4, 2.4, 2.2);
+shelf.rotation.y = Math.PI / 2;
+register(shelf, 'tooth3d.html', '3D');
+scene.add(shelf);
+
+// Second shelf
+const shelf2 = new THREE.Group();
+shelf2.add(box(2.0, 0.12, 0.5, M.wood, 0, 0, 0));
+shelf2.add(box(0.1, 0.4, 0.1, M.woodD, -0.85, -0.22, -0.15));
+shelf2.add(box(0.1, 0.4, 0.1, M.woodD, 0.85, -0.22, -0.15));
+// Some small tools on it
+shelf2.add(cyl(0.03, 0.03, 0.3, M.metal, -0.5, 0.21, 0, 8));
+shelf2.add(cyl(0.03, 0.03, 0.28, M.metal, -0.2, 0.2, 0, 8));
+shelf2.add(cyl(0.05, 0.05, 0.18, M.glass, 0.4, 0.15, 0, 10));
+shelf2.position.set(-ROOM/2 + 0.4, 1.3, -1.5);
+shelf2.rotation.y = Math.PI / 2;
+scene.add(shelf2);
+
+// ══════════════════════════════════════════════
+// TRAY TABLE → Label
+// ══════════════════════════════════════════════
+const tray = new THREE.Group();
+tray.add(box(1.4, 0.08, 0.75, M.white, 0, 0.8, 0));
+[[-0.6, -0.28], [0.6, -0.28], [-0.6, 0.28], [0.6, 0.28]].forEach(([x, z]) => {
+  tray.add(cyl(0.04, 0.04, 0.8, M.metal, x, 0.4, z, 8));
+});
+tray.add(cyl(0.03, 0.03, 0.55, M.metal, -0.4, 0.89, -0.1, 8));
+tray.add(cyl(0.03, 0.03, 0.5, M.metal, -0.05, 0.89, -0.1, 8));
+tray.add(cyl(0.03, 0.03, 0.45, M.metal, 0.3, 0.89, -0.1, 8));
+tray.add(box(0.6, 0.04, 0.4, M.metal, 0, 0.86, 0.22));
+tray.position.set(2.2, 0, 2.6);
+register(tray, 'label3d.html', 'Label');
+scene.add(tray);
+scene.add(shadowDisc(1.0, 2.2, 2.6));
+
+// ══════════════════════════════════════════════
+// POSTER ON WALL → Viva
+// ══════════════════════════════════════════════
+const poster = new THREE.Group();
+poster.add(box(1.05, 1.4, 0.05, M.accent, 0, 0, 0));
+poster.add(box(0.95, 1.3, 0.02, M.white, 0, 0, 0.035));
+poster.add(box(0.75, 0.07, 0.008, M.accent, 0, 0.45, 0.055));
+poster.add(box(0.75, 0.055, 0.008, M.accent, 0, 0.28, 0.055));
+poster.add(box(0.65, 0.055, 0.008, M.accent, -0.05, 0.11, 0.055));
+poster.add(box(0.75, 0.055, 0.008, M.accent, 0, -0.06, 0.055));
+poster.add(box(0.6, 0.055, 0.008, M.accent, -0.075, -0.23, 0.055));
+poster.add(box(0.75, 0.055, 0.008, M.accent, 0, -0.4, 0.055));
+poster.position.set(3.6, 3.0, -ROOM/2 + 0.13);
+register(poster, 'viva.html', 'Viva');
+scene.add(poster);
+
+// ══════════════════════════════════════════════
+// EXAM DESK → Assignments
+// ══════════════════════════════════════════════
+const examDesk = new THREE.Group();
+// Desk surface
+examDesk.add(box(2.2, 0.1, 1.0, M.examD, 0, 0.78, 0));
+// Legs
+[[-1.0, -0.42], [1.0, -0.42], [-1.0, 0.42], [1.0, 0.42]].forEach(([x, z]) => {
+  examDesk.add(cyl(0.05, 0.05, 0.78, M.metal, x, 0.39, z, 8));
+});
+// Computer monitor on the desk
+const compBase = new THREE.Group();
+compBase.add(box(0.5, 0.06, 0.3, M.metal, 0, 0, 0));
+compBase.add(cyl(0.04, 0.04, 0.2, M.metal, 0, 0.13, 0, 10));
+compBase.add(box(1.1, 0.7, 0.05, M.screenB, 0, 0.58, 0));
+compBase.add(box(1.02, 0.62, 0.02, M.examScr, 0, 0.58, 0.04));
+// "lines" on the screen
+for (let i = 0; i < 5; i++) {
+  compBase.add(box(0.8 - i*0.08, 0.05, 0.005, M.accent, -0.05, 0.85 - i*0.15, 0.055));
+}
+compBase.position.set(0, 0.83, -0.15);
+examDesk.add(compBase);
+// Keyboard
+examDesk.add(box(0.7, 0.03, 0.22, M.white, 0, 0.85, 0.25));
+// Chair in front
+const exChair = new THREE.Group();
+exChair.add(cyl(0.03, 0.03, 0.42, M.metal, 0, 0.21, 0, 8));
+exChair.add(box(0.45, 0.06, 0.45, M.exam, 0, 0.42, 0));
+exChair.add(box(0.45, 0.55, 0.06, M.exam, 0, 0.7, -0.2));
+exChair.position.set(0, 0, 1.1);
+examDesk.add(exChair);
+
+examDesk.position.set(1.8, 0, -2.8);
+examDesk.rotation.y = -0.15;
+register(examDesk, 'assignments.html', 'Exam');
+scene.add(examDesk);
+scene.add(shadowDisc(1.6, 1.8, -2.8));
+
+// ══════════════════════════════════════════════
+// CABINET (decorative, no link)
+// ══════════════════════════════════════════════
+const cab = new THREE.Group();
+cab.add(box(1.5, 2.0, 0.6, M.white, 0, 1.0, 0));
+cab.add(box(0.06, 0.06, 0.08, M.metal, -0.35, 1.35, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, 0.35, 1.35, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, -0.35, 0.85, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, 0.35, 0.85, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, -0.35, 0.35, 0.32));
+cab.add(box(0.06, 0.06, 0.08, M.metal, 0.35, 0.35, 0.32));
+cab.position.set(4.5, 0, -ROOM/2 + 0.5);
+scene.add(cab);
+scene.add(shadowDisc(0.9, 4.5, -ROOM/2 + 0.5));
+
+// ══════════════════════════════════════════════
+// X-RAY VIEWER on wall (decorative)
+// ══════════════════════════════════════════════
+const xray = new THREE.Group();
+xray.add(box(1.0, 0.75, 0.06, M.screenB, 0, 0, 0));
+xray.add(box(0.92, 0.67, 0.02, M.glass, 0, 0, 0.04));
+// Some "tooth roots" as small shapes behind
+xray.add(cyl(0.05, 0.06, 0.35, M.white, -0.25, 0, 0.02, 8));
+xray.add(cyl(0.05, 0.06, 0.35, M.white, -0.1, 0, 0.02, 8));
+xray.add(cyl(0.05, 0.06, 0.32, M.white, 0.15, 0.02, 0.02, 8));
+xray.add(cyl(0.05, 0.06, 0.32, M.white, 0.3, 0.02, 0.02, 8));
+xray.position.set(-2.5, 2.6, -ROOM/2 + 0.13);
+scene.add(xray);
+
+// ══════════════════════════════════════════════
+// PLANTS (decorative)
+// ══════════════════════════════════════════════
+function makePlant(x, z) {
+  const p = new THREE.Group();
+  p.add(cyl(0.28, 0.22, 0.45, M.pot, 0, 0.22, 0, 12));
+  p.add(cyl(0.04, 0.04, 0.55, M.leaf, 0, 0.72, 0, 8));
+  for (let i = 0; i < 4; i++) {
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), M.leaf);
+    leaf.position.set(Math.cos(i * 1.6) * 0.2, 1.0 + i * 0.08, Math.sin(i * 1.6) * 0.2);
+    leaf.scale.set(1, 0.55, 0.35);
+    leaf.rotation.z = (i - 1.5) * 0.4;
+    leaf.rotation.y = i * 0.8;
+    p.add(leaf);
+  }
+  p.position.set(x, 0, z);
+  scene.add(p);
+  scene.add(shadowDisc(0.5, x, z));
+}
+makePlant(5.0, 4.5);
+makePlant(-5.0, 4.5);
+
+// ── Interaction ───────────────────────────────
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let hovered = null;
+
+function pickAt(clientX, clientY) {
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(interactives, false);
+  return hits.length > 0 ? hits[0].object : null;
+}
+
+function setHovered(hit) {
+  if (hovered === hit) return;
+  if (hovered && hovered.userData.group) hovered.userData.group.scale.setScalar(1);
+  hovered = hit;
+  if (hit) {
+    document.getElementById('info').textContent = '→ Open ' + hit.userData.label;
+    if (hit.userData.group) hit.userData.group.scale.setScalar(1.06);
+  } else {
+    document.getElementById('info').textContent = 'Drag to rotate · pinch to zoom · tap an object';
+  }
+}
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  const sx = e.clientX, sy = e.clientY;
+  const onUp = u => {
+    renderer.domElement.removeEventListener('pointerup', onUp);
+    if (Math.hypot(u.clientX - sx, u.clientY - sy) < 10) {
+      const hit = pickAt(u.clientX, u.clientY);
+      if (hit && hit.userData.url) window.location.href = hit.userData.url;
+    }
+  };
+  renderer.domElement.addEventListener('pointerup', onUp);
+});
+
+renderer.domElement.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  setHovered(pickAt(e.clientX, e.clientY));
+});
+renderer.domElement.addEventListener('pointerleave', () => setHovered(null));
+
+// ── Resize + loop ─────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.03;
+  interactives.forEach(hit => {
+    const g = hit.userData.group;
+    if (g) {
+      g.children.forEach(c => {
+        if (c.isSprite) {
+          c.material.opacity = 0.85 + Math.sin(t) * 0.12;
+        }
+      });
+    }
+  });
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body></html>

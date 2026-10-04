@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Secondary Dentin — Real Teeth</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.nav{display:flex;gap:5px;padding:10px;flex-wrap:wrap;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:10}
+.nav a{padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.wrap{padding:12px;max-width:960px;margin:0 auto}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.viewer{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;height:48vh;min-height:320px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;top:8px;left:10px;font-size:10px;color:#8b949e;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none;z-index:2}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b949e;font-size:12px;background:rgba(13,17,23,.7);pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:11px;color:#c9d1d9}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.controls{background:#161b22;border-radius:10px;padding:14px;margin-top:12px}
+.ctrl-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ctrl-title .name{font-size:15px;font-weight:700;color:#f0883e}
+.ctrl-title .val{font-size:13px;color:#d2a8ff;font-weight:700}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:24px;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:5px;background:#30363d;border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#f0883e;border:2px solid #0d1117;margin-top:-9px}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:#484f58;padding:2px 2px 0}
+.stage-info{margin-top:10px;padding:10px;background:#0d1117;border-radius:8px;font-size:12.5px;line-height:1.55;color:#c9d1d9;min-height:70px}
+.stage-info strong{color:#f0883e}
+.stage-info .m{display:block;margin-top:6px;color:#8b949e}
+.presets{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.presets button{flex:1;min-width:55px;padding:8px 4px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600}
+.presets button:active{background:#f0883e;color:#0d1117}
+.note{margin-top:12px;font-size:11.5px;color:#8b949e;line-height:1.55}
+</style></head>
+<body>
+<div class="nav">
+<a href="index.html">Timeline</a><a href="learn.html">Learn</a><a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a><a href="viva.html">Viva</a><a href="gustafson.html">Gustafson</a>
+<a href="attrition.html">Attrition</a><a href="periodontosis.html">Periodontosis</a>
+<a href="secondary.html" class="active">Secondary dentin</a>
+<a href="resorption.html">Root resorption</a>
+<a href="assignments.html">Exam</a><a href="clinic.html">Clinic</a>
+</div>
+<div class="wrap">
+<h1>Secondary Dentin — Lower Lateral Incisor</h1>
+<div class="sub">Drag the slider. Watch the pulp shrink as secondary dentin is laid down inside the tooth.</div>
+<div class="viewer" id="viewer">
+  <div class="hint">cut lengthwise · drag to rotate · pinch to zoom</div>
+  <div class="loading" id="loading">Loading tooth…</div>
+</div>
+<div class="legend">
+  <span><i style="background:#e2b85c"></i>Primary dentin</span>
+  <span><i style="background:#c9852a"></i>Secondary dentin</span>
+  <span><i style="background:#c03838"></i>Pulp</span>
+</div>
+<div class="controls">
+  <div class="ctrl-title"><span class="name">Secondary dentin</span><span class="val" id="valDisplay">0 / 3</span></div>
+  <input type="range" min="0" max="3" step="1" value="0" id="slider">
+  <div class="scale"><span>0 · young</span><span>1 · early</span><span>2 · middle</span><span>3 · old</span></div>
+  <div class="stage-info" id="stageInfo"></div>
+  <div class="presets">
+    <button data-v="0">Young</button><button data-v="1">Early</button>
+    <button data-v="2">Middle</button><button data-v="3">Advanced</button>
+  </div>
+</div>
+<div class="note"><strong>Primary</strong> dentin forms until the root is complete. <strong>Secondary</strong> dentin is then laid down slowly throughout life, so the pulp slowly shrinks. <strong>Tertiary</strong> (reparative) dentin is different: it forms locally in response to caries, wear or trauma.</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./libs/three.module.js",
+  "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+  "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const FILE = './models/mandibular_left_lateral_incisor.glb';
+const S = [1, 0.82, 0.62, 0.40];   // pulp width remaining at each stage
+const LEN = [1, 0.92, 0.80, 0.62]; // pulp length remaining at each stage
+const FRAC = 0.28;                 // pulp half-width as a fraction of tooth half-width (lower if it pokes through)
+const VOL = ['100%', '60%', '30%', '10%'];
+const MSG = [
+  '<strong>Stage 0 — young.</strong> Large pulp chamber with prominent horns and wide canals. Dentin walls are thin.',
+  '<strong>Stage 1 — early adult.</strong> A thin amber layer of secondary dentin is laid down on the walls of the pulp chamber first. The cavity begins to shrink.',
+  '<strong>Stage 2 — middle age.</strong> The chamber is clearly smaller and the pulp horn has receded from the incisal edge. Deposition now extends downwards along the canal towards the apex.',
+  '<strong>Stage 3 — older adult.</strong> Chamber and canal are greatly reduced. Root canals are hard to find and negotiate, and the pulp is hard to see on X-ray.'
+];
+
+const viewer = document.getElementById('viewer');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.localClippingEnabled = true;
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, viewer.clientWidth / viewer.clientHeight, 0.01, 200);
+camera.position.set(6.5, 0.6, 0.4);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.enablePan = false;
+controls.minDistance = 2; controls.maxDistance = 9;
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(5, 3, 4); scene.add(key);
+const fillLight = new THREE.DirectionalLight(0xaaccff, 0.5); fillLight.position.set(-4, 1, -2); scene.add(fillLight);
+
+// keeps x <= constant; the constant is set to the pulp's centre once the tooth has loaded
+const plane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+const NR = 28, NS = 24;
+let pulp = null, ghost = null, Y0 = 0, Y1 = 1, slices = [];
+const cur = { s: 1, l: 1 };
+let level = 0;
+
+function mkMesh(mat) {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array((NR + 1) * (NS + 1) * 3), 3));
+  const idx = [];
+  for (let i = 0; i < NR; i++) for (let j = 0; j < NS; j++) {
+    const a = i * (NS + 1) + j, b = a + 1, c = a + NS + 1, d = c + 1;
+    idx.push(a, b, c, b, d, c);
+  }
+  g.setIndex(idx);
+  const m = new THREE.Mesh(g, mat);
+  m.frustumCulled = false;
+  scene.add(m);
+  return m;
+}
+const pulpMat = col => new THREE.MeshStandardMaterial({ color: col, roughness: 0.7, side: THREE.DoubleSide, clippingPlanes: [plane] });
+
+// centre line and half-widths of the tooth at height y (interpolated between measured slices)
+function at(y) {
+  if (y <= slices[0].y) return slices[0];
+  for (let i = 1; i < slices.length; i++) {
+    if (y <= slices[i].y) {
+      const a = slices[i - 1], b = slices[i], t = (y - a.y) / (b.y - a.y);
+      const L = k => a[k] + (b[k] - a[k]) * t;
+      return { cx: L('cx'), cz: L('cz'), hx: L('hx'), hz: L('hz') };
+    }
+  }
+  return slices[slices.length - 1];
+}
+// pulp radius profile: t = 0 at the apex, 1 at the horn tip
+function frac(t) {
+  const x = Math.min(1, Math.max(0, (t - 0.15) / 0.55));
+  let f = 0.35 + 0.65 * x * x * (3 - 2 * x);
+  if (t > 0.86) { const q = (t - 0.86) / 0.14; f *= Math.sqrt(Math.max(0, 1 - q * q)); }
+  return f;
+}
+function fill(mesh, s, l) {
+  const pos = mesh.geometry.attributes.position, len = (Y1 - Y0) * l;
+  for (let i = 0; i <= NR; i++) {
+    const t = i / NR, y = Y0 + t * len, c = at(y), f = frac(t) * s * FRAC;
+    for (let j = 0; j <= NS; j++) {
+      const a = (j / NS) * Math.PI * 2;
+      pos.setXYZ(i * (NS + 1) + j, c.cx + Math.cos(a) * f * c.hx, y, c.cz + Math.sin(a) * f * c.hz);
+    }
+  }
+  pos.needsUpdate = true;
+  mesh.geometry.computeVertexNormals();
+}
+
+function setLevel(l) {
+  level = l;
+  document.getElementById('valDisplay').textContent = l + ' / 3';
+  document.getElementById('stageInfo').innerHTML = MSG[l] + '<span class="m">Pulp space remaining ≈ ' + VOL[l] + ' (illustrative)</span>';
+  if (ghost) ghost.visible = l > 0;
+}
+
+new GLTFLoader().load(FILE, gltf => {
+  const root = gltf.scene;
+  let box = new THREE.Box3().setFromObject(root);
+  root.position.sub(box.getCenter(new THREE.Vector3()));
+  root.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(root);
+  const sz = box.getSize(new THREE.Vector3());
+  const wrapper = new THREE.Group();
+  wrapper.add(root);
+  wrapper.scale.setScalar(2.6 / Math.max(sz.x, sz.y, sz.z));
+  scene.add(wrapper);
+  wrapper.updateMatrixWorld(true);
+
+  // yellow "inside" faces make the cut surface look like dentin
+  const backMat = new THREE.MeshStandardMaterial({ color: 0xe2b85c, roughness: 0.85, side: THREE.BackSide, clippingPlanes: [plane] });
+  const meshes = [];
+  root.traverse(o => { if (o.isMesh) meshes.push(o); });
+  meshes.forEach(m => {
+    (Array.isArray(m.material) ? m.material : [m.material]).forEach(mt => {
+      mt.side = THREE.FrontSide; mt.clippingPlanes = [plane]; mt.needsUpdate = true;
+    });
+    m.add(new THREE.Mesh(m.geometry, backMat));
+  });
+
+  // world-space vertices, used to measure the tooth's width and centre line
+  const verts = [], v = new THREE.Vector3();
+  meshes.forEach(m => {
+    const p = m.geometry.attributes.position;
+    for (let i = 0; i < p.count; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld); verts.push(v.x, v.y, v.z); }
+  });
+  const wb = new THREE.Box3().setFromObject(wrapper), H = wb.max.y - wb.min.y;
+  Y0 = wb.min.y + 0.05 * H;      // canal ends just short of the apex
+  Y1 = wb.max.y - 0.08 * H;      // pulp horn sits below the incisal edge
+  for (let k = 0; k <= 8; k++) {
+    const y = Y0 + (Y1 - Y0) * k / 8;
+    let n = 0, a = 1e9, b = -1e9, c = 1e9, d = -1e9;
+    for (let i = 0; i < verts.length; i += 3) {
+      if (Math.abs(verts[i + 1] - y) < 0.03 * H) {
+        n++; a = Math.min(a, verts[i]); b = Math.max(b, verts[i]); c = Math.min(c, verts[i + 2]); d = Math.max(d, verts[i + 2]);
+      }
+    }
+    if (n > 3) slices.push({ y, cx: (a + b) / 2, cz: (c + d) / 2, hx: (b - a) / 2, hz: (d - c) / 2 });
+  }
+  if (slices.length < 2) { console.error('could not measure tooth'); return; }
+  plane.constant = at((Y0 + Y1) / 2).cx;   // cut through the middle of the pulp
+
+  ghost = mkMesh(pulpMat(0xc9852a));        // original pulp outline = secondary dentin
+  pulp = mkMesh(pulpMat(0xc03838));
+  fill(ghost, 1, 1);
+  fill(pulp, 1, 1);
+  document.getElementById('loading').style.display = 'none';
+  setLevel(level);
+}, undefined, e => { document.getElementById('loading').textContent = 'Could not load model'; console.error(e); });
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input', () => setLevel(parseInt(slider.value, 10)));
+document.querySelectorAll('.presets button').forEach(b => {
+  b.onclick = () => { const v = parseInt(b.dataset.v, 10); slider.value = v; setLevel(v); };
+});
+window.addEventListener('resize', () => {
+  camera.aspect = viewer.clientWidth / viewer.clientHeight; camera.updateProjectionMatrix();
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+});
+function animate() {
+  requestAnimationFrame(animate);
+  if (pulp) {
+    const ts = S[level], tl = LEN[level];
+    if (Math.abs(ts - cur.s) > 0.0005 || Math.abs(tl - cur.l) > 0.0005) {
+      cur.s += (ts - cur.s) * 0.12; cur.l += (tl - cur.l) * 0.12;
+      fill(pulp, cur.s, cur.l);
+    }
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+document.getElementById('stageInfo').innerHTML = MSG[0];
+animate();
+</script>
+</body></html>

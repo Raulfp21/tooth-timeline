@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Root Resorption — Real Teeth</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.nav{display:flex;gap:5px;padding:10px;flex-wrap:wrap;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:10}
+.nav a{padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.wrap{padding:12px;max-width:960px;margin:0 auto}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.viewer{position:relative;background:radial-gradient(circle at center,#1a2029,#0d1117);border-radius:10px;height:52vh;min-height:340px;overflow:hidden;touch-action:none}
+.viewer canvas{display:block;width:100%;height:100%}
+.hint{position:absolute;top:8px;left:10px;font-size:10px;color:#8b949e;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:4px;pointer-events:none;z-index:2}
+.loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#8b949e;font-size:12px;background:rgba(13,17,23,.7);pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;font-size:11px;color:#c9d1d9}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.controls{background:#161b22;border-radius:10px;padding:14px;margin-top:12px}
+.ctrl-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ctrl-title .name{font-size:15px;font-weight:700;color:#f0883e}
+.ctrl-title .val{font-size:13px;color:#d2a8ff;font-weight:700}
+input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:24px;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:5px;background:#30363d;border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#f0883e;border:2px solid #0d1117;margin-top:-9px}
+.scale{display:flex;justify-content:space-between;font-size:10px;color:#484f58;padding:2px 2px 0}
+.stage-info{margin-top:10px;padding:10px;background:#0d1117;border-radius:8px;font-size:12.5px;line-height:1.55;color:#c9d1d9;min-height:70px}
+.stage-info strong{color:#f0883e}
+.stage-info .m{display:block;margin-top:6px;color:#8b949e}
+.presets{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
+.presets button{flex:1;min-width:55px;padding:8px 4px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600}
+.presets button:active{background:#f0883e;color:#0d1117}
+.note{margin-top:12px;font-size:11.5px;color:#8b949e;line-height:1.55}
+</style></head>
+<body>
+<div class="nav">
+<a href="index.html">Timeline</a><a href="learn.html">Learn</a><a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a><a href="viva.html">Viva</a><a href="gustafson.html">Gustafson</a>
+<a href="attrition.html">Attrition</a><a href="periodontosis.html">Periodontosis</a>
+<a href="secondary.html">Secondary dentin</a>
+<a href="resorption.html" class="active">Root resorption</a>
+<a href="transparency.html">Transparency</a>
+<a href="assignments.html">Exam</a><a href="clinic.html">Clinic</a>
+</div>
+<div class="wrap">
+<h1>Root Resorption — Lower Lateral Incisor</h1>
+<div class="sub">Drag the slider. Watch the root shorten from the apex upwards.</div>
+<div class="viewer" id="viewer">
+  <div class="hint">drag to rotate · pinch to zoom</div>
+  <div class="loading" id="loading">Loading tooth…</div>
+</div>
+<div class="legend">
+  <span><i style="background:#e2b85c"></i>Cut dentin (resorbed surface)</span>
+  <span><i style="background:rgba(226,184,92,.25)"></i>Root lost (ghost)</span>
+</div>
+<div class="controls">
+  <div class="ctrl-title"><span class="name">R — Root resorption</span><span class="val" id="valDisplay">0 / 3</span></div>
+  <input type="range" min="0" max="3" step="1" value="0" id="slider">
+  <div class="scale"><span>0 · none</span><span>1 · begin</span><span>2 · obvious</span><span>3 · max</span></div>
+  <div class="stage-info" id="stageInfo"></div>
+  <div class="presets">
+    <button data-v="0">None</button><button data-v="1">Early</button>
+    <button data-v="2">Middle</button><button data-v="3">Advanced</button>
+  </div>
+</div>
+<div class="note">Resorption involves both <strong>cementum and dentin</strong>, which show characteristically sharp grooves. It <strong>starts at the apex and extends upwards</strong>, usually in late age, and may be due to a pathological process. The resorbed surface is drawn with an irregular, jagged edge, as in real resorption.</div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "./libs/three.module.js",
+  "three/addons/loaders/GLTFLoader.js": "./libs/GLTFLoader.js",
+  "three/addons/controls/OrbitControls.js": "./libs/OrbitControls.js"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const FILE = './models/mandibular_left_lateral_incisor.glb';
+const LOSS = [0, 0.08, 0.30, 0.45];   // fraction of the root length lost at each stage
+const ROOT = 0.58;                    // root as a fraction of the whole tooth height
+const MSG = [
+  '<strong>Stage 0 — no change.</strong> The root is intact and the apex is fully formed.',
+  '<strong>Stage 1 — beginning.</strong> Resorption starts at the apex. The apex shows an irregular contour and a small loss of length (about 2 mm or less).',
+  '<strong>Stage 2 — obvious.</strong> Resorption has removed up to about one third of the root length.',
+  '<strong>Stage 3 — maximum.</strong> More than one third of the root is lost. The remaining tooth has little support and may become loose.'
+];
+
+const viewer = document.getElementById('viewer');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+renderer.localClippingEnabled = true;
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, viewer.clientWidth / viewer.clientHeight, 0.01, 200);
+camera.position.set(0, 0.9, 7.5);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.enablePan = false;
+controls.minDistance = 2.5; controls.maxDistance = 10;
+scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3, 5, 5); scene.add(key);
+const fillLight = new THREE.DirectionalLight(0xaaccff, 0.5); fillLight.position.set(-4, 1, -2); scene.add(fillLight);
+
+// slightly tilted plane so the cut is oblique, like uneven resorption; keeps the part above it
+const N = new THREE.Vector3(0.12, 1, 0.05).normalize();
+const plane = new THREE.Plane(N.clone(), 999);
+const ghostPlane = new THREE.Plane(N.clone().negate(), -999);
+const AMP = 0.07;   // raggedness of the cut edge (world units; model is 2.8 tall). 0 = smooth
+const cutU = { value: -999 }, ampU = { value: AMP }, nU = { value: N };
+function cutPatch(mt, keepAbove) {
+  mt.onBeforeCompile = sh => {
+    sh.uniforms.uCut = cutU; sh.uniforms.uAmp = ampU; sh.uniforms.uN = nU;
+    sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = 'varying vec3 vWP; uniform float uCut; uniform float uAmp; uniform vec3 uN;\n' +
+      'float h(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7))) * 43758.5453); }\n' +
+      'float vn(vec3 p){ vec3 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);\n' +
+      ' return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x), mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x), f.y),\n' +
+      '            mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x), mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x), f.y), f.z); }\n' +
+      sh.fragmentShader.replace('#include <clipping_planes_fragment>',
+        'float rn = vn(vWP * 14.0) * 0.65 + vn(vWP * 40.0) * 0.35 - 0.5;\n' +
+        ' float rd = dot(uN, vWP) - uCut + rn * uAmp * 2.0;\n' +
+        (keepAbove ? ' if (rd < 0.0) discard;' : ' if (rd >= 0.0) discard;') +
+        '\n#include <clipping_planes_fragment>');
+  };
+  mt.customProgramCacheKey = () => keepAbove ? 'resKeep' : 'resGhost';
+  mt.needsUpdate = true;
+}   // the lost part below the cut
+
+let level = 0, cur = 0, apexY = 0, rootLen = 1;
+
+function setLevel(l) {
+  level = l;
+  document.getElementById('valDisplay').textContent = l + ' / 3';
+  document.getElementById('stageInfo').innerHTML = MSG[l] + '<span class="m">Root length lost ≈ ' + Math.round(LOSS[l] * 100) + '% (illustrative)</span>';
+}
+
+new GLTFLoader().load(FILE, gltf => {
+  const root = gltf.scene;
+  let box = new THREE.Box3().setFromObject(root);
+  root.position.sub(box.getCenter(new THREE.Vector3()));
+  root.updateMatrixWorld(true);
+  box = new THREE.Box3().setFromObject(root);
+  const sz = box.getSize(new THREE.Vector3());
+  const wrapper = new THREE.Group();
+  wrapper.add(root);
+  wrapper.scale.setScalar(2.8 / Math.max(sz.x, sz.y, sz.z));
+  scene.add(wrapper);
+  wrapper.updateMatrixWorld(true);
+
+  const wb = new THREE.Box3().setFromObject(wrapper);
+  apexY = wb.min.y;
+  rootLen = (wb.max.y - wb.min.y) * ROOT;
+
+  const backMat = new THREE.MeshStandardMaterial({ color: 0xe2b85c, roughness: 0.85, side: THREE.BackSide });
+  cutPatch(backMat, true);
+  const ghostMat = new THREE.MeshBasicMaterial({ color: 0xf0d58a, transparent: true, opacity: 0.12, depthWrite: false });
+  cutPatch(ghostMat, false);
+  const meshes = [];
+  root.traverse(o => { if (o.isMesh) meshes.push(o); });
+  meshes.forEach(m => {
+    (Array.isArray(m.material) ? m.material : [m.material]).forEach(mt => {
+      mt.side = THREE.FrontSide; cutPatch(mt, true);
+    });
+    m.add(new THREE.Mesh(m.geometry, backMat));
+    m.add(new THREE.Mesh(m.geometry, ghostMat));
+  });
+  document.getElementById('loading').style.display = 'none';
+  setLevel(level);
+}, undefined, e => { document.getElementById('loading').textContent = 'Could not load model'; console.error(e); });
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input', () => setLevel(parseInt(slider.value, 10)));
+document.querySelectorAll('.presets button').forEach(b => {
+  b.onclick = () => { const v = parseInt(b.dataset.v, 10); slider.value = v; setLevel(v); };
+});
+window.addEventListener('resize', () => {
+  camera.aspect = viewer.clientWidth / viewer.clientHeight; camera.updateProjectionMatrix();
+  renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+});
+function animate() {
+  requestAnimationFrame(animate);
+  const t = LOSS[level];
+  cur += (t - cur) * 0.12;
+  if (Math.abs(t - cur) < 0.0005) cur = t;
+  // plane passes through (0, cutY, 0); with no loss it sits well below the apex
+  const cutY = cur <= 0 ? apexY - 0.6 : apexY + rootLen * cur;
+  plane.constant = -N.y * cutY;
+  ghostPlane.constant = N.y * cutY; cutU.value = N.y * cutY;
+  controls.update();
+  renderer.render(scene, camera);
+}
+document.getElementById('stageInfo').innerHTML = MSG[0];
+animate();
+</script>
+</body></html>

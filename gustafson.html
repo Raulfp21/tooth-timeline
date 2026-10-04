@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Gustafson's Method — Visual</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;margin:0;font-size:14px;line-height:1.5}
+.nav{display:flex;gap:5px;padding:10px;flex-wrap:wrap;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:10}
+.nav a{padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d}
+.nav a.active{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.wrap{padding:12px;max-width:960px;margin:0 auto}
+h1{font-size:16px;margin:0 0 4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+.top{display:grid;gap:12px}
+@media(min-width:780px){.top{grid-template-columns:1fr 1fr;align-items:start}}
+.diagram{background:#1a2029;border-radius:10px;padding:8px}
+.diagram svg{width:100%;height:auto;display:block}
+.lb{font:600 11px -apple-system,sans-serif;fill:#e6edf3;stroke:#0d1117;stroke-width:3px;paint-order:stroke}
+.controls{background:#161b22;border-radius:10px;padding:12px}
+.result{background:linear-gradient(135deg,rgba(210,168,255,.15),rgba(88,166,255,.1));border:1px solid #d2a8ff;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px}
+.result .row{display:flex;justify-content:center;gap:24px;flex-wrap:wrap}
+.result .item .l{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px}
+.result .item .v{font-size:24px;font-weight:800;color:#d2a8ff;font-variant-numeric:tabular-nums;line-height:1.1}
+.result .item.age .v{color:#3fb950}
+.presets{display:flex;gap:5px;margin-top:8px;justify-content:center;flex-wrap:wrap}
+.presets button{padding:6px 10px;border-radius:6px;border:1px solid #30363d;background:#0d1117;color:#e6edf3;font-family:inherit;font-size:11px;font-weight:600;cursor:pointer}
+.presets button:active{background:#d2a8ff;color:#0d1117}
+.presets button.play{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff;width:100%;padding:9px;font-size:12px}
+.ctrl{margin-bottom:12px}
+.ctrl:last-child{margin-bottom:0}
+.ctrl .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.ctrl .title{font-size:13px;font-weight:700}
+.ctrl .val{font-size:12px;color:#d2a8ff;font-weight:700}
+.ctrl .one{font-size:11px;color:#8b949e;margin-bottom:6px;line-height:1.35}
+.ctrl input[type=range]{width:100%;-webkit-appearance:none;background:transparent;height:22px;margin:0}
+.ctrl input[type=range]::-webkit-slider-runnable-track{height:4px;background:#30363d;border-radius:2px}
+.ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#d2a8ff;border:2px solid #0d1117;margin-top:-8px;cursor:pointer}
+.ctrl .scale{display:flex;justify-content:space-between;font-size:9px;color:#484f58;padding:2px 4px 0}
+.ctrl .full{max-height:0;overflow:hidden;font-size:12px;color:#c9d1d9;line-height:1.55;transition:max-height .3s ease}
+.ctrl.open .full{max-height:420px;margin-top:10px;padding-top:10px;border-top:1px solid #21262d}
+.ctrl .full strong{color:#d2a8ff}
+</style>
+</head>
+<body>
+
+<div class="nav">
+<a href="index.html">Timeline</a>
+<a href="learn.html">Learn</a>
+<a href="tooth3d.html">3D</a>
+<a href="label3d.html">Label</a>
+<a href="viva.html">Viva</a>
+<a href="gustafson.html" class="active">Gustafson</a>
+<a href="attrition.html">Attrition</a>
+<a href="periodontosis.html">Periodontosis</a>
+<a href="secondary.html">Secondary dentin</a>
+<a href="resorption.html">Root resorption</a>
+<a href="transparency.html">Transparency</a>
+<a href="cementum.html">Cementum</a>
+<a href="assignments.html">Exam</a>
+<a href="clinic.html">Clinic</a>
+</div>
+
+<div class="wrap">
+<h1>Gustafson's Method — Visual</h1>
+<div class="sub">Illustrative longitudinal section. Slide a parameter, or play the ageing timelapse.</div>
+
+<div class="top">
+  <div class="diagram">
+    <svg viewBox="0 0 420 700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="gDen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe0b8"/><stop offset="1" stop-color="#e2cd98"/></linearGradient>
+        <linearGradient id="gPulp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dc8f8f"/><stop offset="1" stop-color="#b85a5a"/></linearGradient>
+        <linearGradient id="gGum" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2a7a9"/><stop offset="1" stop-color="#d47d86"/></linearGradient>
+        <linearGradient id="gBone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcbd9c"/><stop offset="1" stop-color="#c29c7a"/></linearGradient>
+        <linearGradient id="gT" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cdeeff" stop-opacity="0"/><stop offset=".3" stop-color="#cdeeff" stop-opacity=".85"/><stop offset="1" stop-color="#b8e4fa" stop-opacity=".92"/></linearGradient>
+        <pattern id="tub" width="6" height="10" patternUnits="userSpaceOnUse"><path d="M3 0V10" stroke="#b79a62" stroke-width=".8" opacity=".5"/></pattern>
+        <pattern id="trab" width="26" height="22" patternUnits="userSpaceOnUse"><ellipse cx="6" cy="6" rx="5" ry="3" fill="#a9855f" opacity=".5"/><ellipse cx="19" cy="15" rx="4" ry="2.6" fill="#a9855f" opacity=".5"/></pattern>
+        <clipPath id="oc"><path d="M148 270C140 230 118 190 120 140C122 95 160 62 210 62C260 62 298 95 300 140C302 190 280 230 272 270C272 330 262 480 244 560C236 595 224 625 210 632C196 625 184 595 176 560C158 480 148 330 148 270Z"/></clipPath>
+        <clipPath id="cr"><rect x="0" y="0" width="420" height="272"/></clipPath>
+        <clipPath id="rt"><rect x="0" y="268" width="420" height="440"/></clipPath>
+        <clipPath id="a1"><rect x="0" y="500" width="420" height="200"/></clipPath>
+        <clipPath id="a2"><rect x="0" y="560" width="420" height="140"/></clipPath>
+        <clipPath id="a3"><rect x="0" y="600" width="420" height="100"/></clipPath>
+      </defs>
+      <text x="14" y="22" font-size="12" fill="#d2a8ff" font-weight="700" font-family="-apple-system,sans-serif">Gustafson's method — section</text>
+      <g id="dyn"></g>
+    </svg>
+  </div>
+  <div>
+    <div class="result">
+      <div class="row">
+        <div class="item"><div class="l">Total score</div><div class="v" id="scoreDisplay">0 / 18</div></div>
+        <div class="item age"><div class="l">Estimated age</div><div class="v" id="ageDisplay">~15 y</div></div>
+      </div>
+      <div class="presets">
+        <button data-preset="young">Age ~20</button>
+        <button data-preset="middle">Age ~40</button>
+        <button data-preset="old">Age ~60</button>
+        <button data-preset="reset">Reset</button>
+        <button class="play" id="playBtn">▶ Play ageing timelapse</button>
+      </div>
+    </div>
+    <div class="controls" id="controls"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const CHANGES = [
+  { key:'attrition', letter:'A', name:'Attrition', color:'#f0883e',
+    one:'Wear of the occlusal surface from mastication.',
+    full:'Due to wear and tear from mastication, the occlusal (upper) surface of the teeth is destroyed gradually — first involving the enamel, then the dentin, and at last the pulp is exposed in old age. It depends on the functional use of the teeth and upon the hardness of the enamel.' },
+  { key:'periodontosis', letter:'P', name:'Periodontosis', color:'#e88a8a',
+    one:'Recession of gums and periodontal tissue, exposing the neck and part of the root.',
+    full:'Regression of the gums and periodontal tissues surrounding the teeth takes place in advancing age, gradually exposing the necks and adjacent parts of roots, due to which the teeth become loose and fall off. Poor oral hygiene increases periodontosis. There may be deposition of hardened debris. <strong>Estimated before extraction.</strong>' },
+  { key:'secondaryDentin', letter:'S', name:'Secondary dentin', color:'#e8c088',
+    one:'Dentin deposited on the walls of the pulp cavity, shrinking it.',
+    full:'It may develop from the walls within the pulp cavity and decrease the size of the cavity. Initially deposited at the pulp chamber, it gradually extends downwards to the apex and may completely fill the pulp cavity. Partly due to ageing, partly to pathological conditions like caries.' },
+  { key:'rootResorption', letter:'R', name:'Root resorption', color:'#c97a7a',
+    one:'Sharp grooves on cementum and dentin at the apex.',
+    full:'It involves both cementum and dentin which show characteristically sharp grooves. Absorption of the root starts first at the apex and extends upwards. Usually occurs in late age. It may be due to a pathological process.' },
+  { key:'transparency', letter:'T', name:'Transparency of root', color:'#88d8ff',
+    one:'Dentin becomes translucent. Most reliable criterion.',
+    full:'Not seen until about 30 years of age. The canals in the dentin are at first wide; with age they are filled by mineral so that they become translucent gradually and the dentine becomes transparent due to rarefaction (osteoporosis). Occurs from below upwards in the lower jaw, from above downwards in the upper jaw. <strong>Most reliable of all criteria.</strong>' },
+  { key:'cementum', letter:'C', name:'Cementum apposition', color:'#d8c090',
+    one:'Cementum thickens, especially near the root apex.',
+    full:'The cementum increases in thickness particularly due to changes in the tooth position, especially near the end of the root.' },
+];
+const ZERO = { attrition:0, periodontosis:0, secondaryDentin:0, rootResorption:0, transparency:0, cementum:0 };
+const PRESETS = {
+  young: { attrition:0, periodontosis:0, secondaryDentin:1, rootResorption:0, transparency:0, cementum:0 },
+  middle:{ attrition:1, periodontosis:1, secondaryDentin:2, rootResorption:1, transparency:1, cementum:1 },
+  old:   { attrition:3, periodontosis:3, secondaryDentin:3, rootResorption:2, transparency:3, cementum:2 },
+  reset: ZERO,
+};
+const state = {...ZERO};
+const shown = {...ZERO};
+
+// ═══ GEOMETRY ═══
+const CX = 210;
+const OUT = "M148 270C140 230 118 190 120 140C122 95 160 62 210 62C260 62 298 95 300 140C302 190 280 230 272 270C272 330 262 480 244 560C236 595 224 625 210 632C196 625 184 595 176 560C158 480 148 330 148 270Z";
+// approximate half-width of the tooth outline at height y
+const W = y => y<62 ? 0 : y<140 ? 90*Math.sqrt((y-62)/78) : y<270 ? 90-(y-140)*28/130 : y<330 ? 62
+  : y<560 ? 62-(y-330)*28/230 : Math.max(2, 34*Math.sqrt(Math.max(0, 1-((y-560)/72)**2)));
+const PY0 = 108;   // pulp roof when there is no secondary dentin
+const hw0 = (y,y0) => {
+  if (y < y0) return 0;
+  const ch = 34*Math.pow(Math.min(1,(y-y0)/45), .55);
+  const canal = 20-(Math.max(y,270)-270)*15/340;
+  if (y <= 225) return ch;
+  if (y >= 290) return canal;
+  return ch + (canal-ch)*(y-225)/65;
+};
+function pulp(sd){
+  const y0 = PY0+sd*38, f = 1-sd*.27;
+  let L='', R='';
+  for (let y=y0; y<=612; y+=10){
+    const h = Math.max(1.2, hw0(y,y0)*f);
+    L += `${CX-h},${y} `; R = `${CX+h},${y} ` + R;
+  }
+  return `M${CX} ${y0-4}L${L}${R}Z`;
+}
+const lb = (left,t,y,tx,ty,op=1) => {
+  const x = left?14:332, x1 = left?112:328;
+  return `<g opacity="${op}"><line x1="${x1}" y1="${y-4}" x2="${tx}" y2="${ty}" stroke="#e6edf3" stroke-opacity=".6"/><circle cx="${tx}" cy="${ty}" r="2" fill="#e6edf3"/><text x="${x}" y="${y}" class="lb">${t}</text></g>`;
+};
+
+function draw(s){
+  const at=s.attrition, pd=s.periodontosis, sd=s.secondaryDentin, rr=s.rootResorption, tr=s.transparency, cm=s.cementum;
+  const cut = 56+at*34, apex = 640-rr*9, g = 262+pd*38, bt = g+24;
+  const c = 3+cm*3.4, ex = cm*3.5;
+  const w = W(g), wb = W(bt);
+  let o = `<defs><clipPath id="tb"><rect x="0" y="${cut}" width="420" height="${apex-cut}"/></clipPath>
+           <clipPath id="pc"><rect x="0" y="${bt-4}" width="420" height="700"/></clipPath></defs>`;
+
+  // gum
+  o += `<path d="M10 ${g+16}Q${CX-w-45} ${g+16} ${CX-w+2} ${g-3}L${CX+w-2} ${g-3}Q${CX+w+45} ${g+16} 410 ${g+16}V700H10Z" fill="url(#gGum)"/>`;
+  o += `<path d="M10 ${g+16}Q${CX-w-45} ${g+16} ${CX-w+2} ${g-3}M410 ${g+16}Q${CX+w+45} ${g+16} ${CX+w-2} ${g-3}" fill="none" stroke="#b85a66" stroke-width="2"/>`;
+  // alveolar bone
+  const bone = `M10 ${bt+10}Q${CX-wb-40} ${bt+10} ${CX-wb-3} ${bt-4}L${CX+wb+3} ${bt-4}Q${CX+wb+40} ${bt+10} 410 ${bt+10}V700H10Z`;
+  o += `<path d="${bone}" fill="url(#gBone)"/><path d="${bone}" fill="url(#trab)"/>`;
+  // periodontal ligament
+  o += `<g clip-path="url(#pc)"><path d="${OUT}" fill="none" stroke="#6e4630" stroke-width="12" opacity=".55" stroke-linejoin="round"/></g>`;
+
+  // tooth (clipped by wear at the top and resorption at the apex)
+  o += `<g clip-path="url(#tb)"><g clip-path="url(#oc)">`;
+  o += `<path d="${OUT}" fill="url(#gDen)"/><path d="${OUT}" fill="url(#tub)"/>`;
+  if (tr>.02){ const h=tr*120; o += `<g clip-path="url(#rt)"><rect x="100" y="${640-h}" width="220" height="${h+20}" fill="url(#gT)"/></g>`; }
+  o += `<g clip-path="url(#rt)"><path d="${OUT}" fill="none" stroke="#a88a52" stroke-width="${2*c+2}"/><path d="${OUT}" fill="none" stroke="#dcc58c" stroke-width="${2*c}"/></g>`;
+  if (cm>.02) o += `<g clip-path="url(#a1)"><path d="${OUT}" fill="none" stroke="#dcc58c" stroke-width="${2*(c+ex*.35)}"/></g>
+                    <g clip-path="url(#a2)"><path d="${OUT}" fill="none" stroke="#dcc58c" stroke-width="${2*(c+ex*.7)}"/></g>
+                    <g clip-path="url(#a3)"><path d="${OUT}" fill="none" stroke="#dcc58c" stroke-width="${2*(c+ex)}"/></g>`;
+  if (sd>.02) o += `<path d="${pulp(0)}" fill="#cf9a55" opacity="${Math.min(1,sd*1.4)}"/>`;
+  o += `<path d="${pulp(sd)}" fill="url(#gPulp)" stroke="#a04a4a" stroke-width="1"/>`;
+  o += `<g clip-path="url(#cr)"><path d="${OUT}" fill="none" stroke="#cdbf92" stroke-width="24"/><path d="${OUT}" fill="none" stroke="#f6f0de" stroke-width="22"/></g>`;
+  if (at>.02) o += `<rect x="100" y="${cut-1}" width="220" height="6" fill="#f0883e" opacity="${Math.min(.85,at*.5)}"/>`;
+  o += `</g><path d="${OUT}" fill="none" stroke="#a8946a" stroke-width="1.2"/></g>`;
+
+  // apical resorption notches
+  if (rr>.1) [598,572,546].forEach((y,i) => {
+    const k = Math.min(1, rr-i); if (k<=0) return;
+    const d = (4+rr*3.2)*k, h = (7+rr*2.5)*k;
+    [-1,1].forEach(sg => { const xe = CX+sg*W(y);
+      o += `<polygon points="${xe+sg*6},${y-h} ${xe-sg*d},${y} ${xe+sg*6},${y+h}" fill="#b8936f" stroke="#7a5a3a" stroke-width="1"/>`; });
+  });
+
+  // original gum line when receded
+  if (pd>.05) o += `<line x1="14" y1="262" x2="${CX-W(262)-6}" y2="262" stroke="#f2cc60" stroke-dasharray="4 3"/><text x="14" y="256" class="lb" style="font-size:9px">original gum line</text>`;
+
+  // labels
+  o += lb(false,'Enamel',190,284,190) + lb(false,'Dentin',236,253,236) + lb(false,'Cementum',480,252,480)
+     + lb(false,'Bone',600,300,600) + lb(false,'Gum',g+28,CX+w+36,g+20) + lb(true,'Pulp',310,CX-2,310);
+  if (sd>.05){ const h0=20-(352-270)*15/340, hs=h0*(1-.3*sd); o += lb(true,'Secondary dentin',352,CX-(h0+hs)/2,352,Math.min(1,sd*2)); }
+  if (tr>.05) o += lb(true,'Root transparency',605,CX-18,605,Math.min(1,tr));
+  if (rr>.05) o += lb(true,'Resorption',640,CX-W(598)+2,598,Math.min(1,rr*1.5));
+  document.getElementById('dyn').innerHTML = o;
+}
+
+// ═══ ANIMATION ═══
+const scoreEl = document.getElementById('scoreDisplay'), ageEl = document.getElementById('ageDisplay');
+let raf = 0;
+function tick(){
+  let moving = false;
+  for (const k in state){
+    const d = state[k]-shown[k];
+    if (Math.abs(d) > .005){ shown[k] += d*.14; moving = true; } else shown[k] = state[k];
+  }
+  draw(shown);
+  const total = Math.round(Object.values(shown).reduce((a,b)=>a+b,0));
+  scoreEl.textContent = total+' / 18';
+  ageEl.textContent = '~'+(15+total*3)+' y';
+  raf = moving ? requestAnimationFrame(tick) : 0;
+}
+const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+
+// ═══ CONTROLS ═══
+const controlsEl = document.getElementById('controls');
+CHANGES.forEach(c => {
+  const d = document.createElement('div');
+  d.className = 'ctrl'; d.dataset.key = c.key;
+  d.innerHTML =
+    `<div class="head"><span class="title" style="color:${c.color}">${c.letter} — ${c.name}</span><span class="val" id="val-${c.key}">0 / 3</span></div>
+     <div class="one">${c.one}</div>
+     <input type="range" min="0" max="3" step="1" value="0" data-key="${c.key}">
+     <div class="scale"><span>0 none</span><span>1 begin</span><span>2 obvious</span><span>3 max</span></div>
+     <div class="full">${c.full}</div>`;
+  controlsEl.appendChild(d);
+});
+const activate = key => controlsEl.querySelectorAll('.ctrl').forEach(el => el.classList.toggle('open', el.dataset.key === key));
+function syncSliders(){
+  CHANGES.forEach(c => {
+    const v = state[c.key];
+    controlsEl.querySelector(`input[data-key="${c.key}"]`).value = Math.round(v);
+    document.getElementById('val-'+c.key).textContent = (v%1 ? v.toFixed(1) : v)+' / 3';
+  });
+}
+controlsEl.querySelectorAll('input[type=range]').forEach(inp => {
+  inp.addEventListener('input', () => {
+    stopPlay();
+    state[inp.dataset.key] = parseInt(inp.value,10);
+    syncSliders(); activate(inp.dataset.key); kick();
+  });
+  inp.addEventListener('pointerdown', () => activate(inp.dataset.key));
+});
+document.querySelectorAll('.presets button[data-preset]').forEach(b => {
+  b.onclick = () => { stopPlay(); Object.assign(state, PRESETS[b.dataset.preset]); syncSliders(); kick(); };
+});
+
+// ═══ TIMELAPSE ═══
+const playBtn = document.getElementById('playBtn');
+const MAX = { attrition:3, periodontosis:3, secondaryDentin:3, rootResorption:2.4, transparency:3, cementum:2.4 };
+const DELAY = { attrition:.05, periodontosis:.15, secondaryDentin:0, rootResorption:.35, transparency:.2, cementum:0 };
+let play = 0;
+function stopPlay(){ if (play){ cancelAnimationFrame(play); play = 0; } playBtn.textContent = '▶ Play ageing timelapse'; }
+playBtn.onclick = () => {
+  if (play){ stopPlay(); return; }
+  const t0 = performance.now(), D = 11000;
+  playBtn.textContent = '■ Stop';
+  const step = now => {
+    const p = Math.min(1,(now-t0)/D);
+    CHANGES.forEach(c => {
+      const dl = DELAY[c.key], q = Math.max(0,(p-dl)/(1-dl));
+      state[c.key] = MAX[c.key]*(q<.5 ? 2*q*q : 1-Math.pow(-2*q+2,2)/2);
+    });
+    syncSliders(); kick();
+    if (p < 1) play = requestAnimationFrame(step); else { play = 0; stopPlay(); }
+  };
+  play = requestAnimationFrame(step);
+};
+
+draw(shown);
+</script>
+</body></html>
