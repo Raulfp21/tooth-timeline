@@ -39,22 +39,28 @@ select{width:100%;padding:8px;background:#161b22;color:#e6edf3;border:1px solid 
 .pane-view canvas{display:block;width:100%!important;height:100%!important}
 .pane-label{position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;background:rgba(210,168,255,.9);color:#0d1117;z-index:2;pointer-events:none;text-transform:uppercase;letter-spacing:.5px}
 </style>
+
+<style id="lecture-focus-nav">
+.lecture-focus-nav{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding:8px;background:#0d1117;border:1px solid #30363d;border-radius:10px;position:relative;z-index:20}
+.lecture-focus-nav a{padding:7px 10px;border-radius:7px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d;font-weight:600}
+.lecture-focus-nav a:hover{border-color:#d2a8ff;color:#fff}
+.lecture-focus-nav a.primary{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
+.lecture-focus-nav a.age{background:#238636;color:#fff;border-color:#238636}
+.lecture-focus-nav .nav-label{width:100%;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#8b949e;padding:0 2px 1px}
+</style>
 </head>
 <body>
 
-<div class="nav">
-<a href="index.html">Timeline</a>
-<a href="learn.html">Learn</a>
-<a href="tooth3d.html" class="active">3D</a>
-<a href="label3d.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Label</a>
-<a href="viva.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Viva</a>
-<a href="gustafson.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Gustafson</a>
-<a href="attrition.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Attrition</a>
-<a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
-<a href="secondary.html">Secondary dentin</a>
-<a href="resorption.html">Root resorption</a>
-<a href="transparency.html">Transparency</a>
-<a href="cementum.html">Cementum</a>
+<div class="lecture-focus-nav">
+<div class="nav-label">Forensic Odontology • Dental Age Assessment Lecture</div>
+<a class="" href="clinic.html">🏥 Clinic</a>
+<a class="" href="learn.html">🎯 Age Assessment</a>
+<a class="" href="index.html">🦷 Eruption Timeline</a>
+<a class="" href="fdinumbering.html">🔢 FDI Quick Guide</a>
+<a class="primary" href="tooth3d.html">🧊 3D Tooth</a>
+<a class="" href="gustafson.html">🔬 Gustafson</a>
+<a class="" href="viva.html">🎓 Viva</a>
+<a class="" href="assignments.html">📝 Exam</a>
 </div>
 
 <h1>Tooth Morphology — 3D</h1>
@@ -454,4 +460,5 @@ showSingle('primary_upper_left_central_incisor_fdi_61');
 
 
 <div style="text-align:center;font-size:10px;color:#484f58;padding:16px 12px 24px;line-height:1.5">Teaching modules for MBBS Forensic Medicine.<br>Content based on Reddy's Forensic Medicine, 36th ed.<br>3D models: University of Dundee School of Dentistry (CC BY 4.0).<br>Full attributions: <a href="ATTRIBUTIONS.md" style="color:#8b949e">ATTRIBUTIONS.md</a></div>
+<script src="course-guard.js"></script>
 </body></html>

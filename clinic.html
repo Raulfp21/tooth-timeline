@@ -13,27 +13,140 @@ html,body{margin:0;padding:0;overflow:hidden;background:#c8a882;font-family:-app
 .hint{position:absolute;top:12px;right:12px;background:rgba(210,168,255,.95);color:#1a1410;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:600;z-index:5}
 .info{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);background:rgba(22,27,34,.92);color:#e6edf3;padding:8px 16px;border-radius:20px;font-size:12px;border:1px solid #30363d;z-index:5;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 </style>
+
+<style id="controlled-course-css">
+/* Controlled teaching mode */
+#coursePanel{
+  position:absolute;top:58px;left:10px;z-index:7;width:min(390px,calc(100vw - 20px));
+  max-height:calc(100vh - 75px);overflow:auto;
+  background:rgba(13,17,23,.96);color:#e6edf3;border:1px solid #30363d;
+  border-radius:16px;padding:12px;box-shadow:0 12px 35px rgba(0,0,0,.35);
+}
+#coursePanel h2{margin:0 0 3px;font-size:18px;color:#fff}
+#coursePanel .sub{font-size:11px;color:#aab4c0;margin-bottom:10px}
+.course-progress{height:7px;background:#30363d;border-radius:10px;overflow:hidden;margin:7px 0 12px}
+.course-progress>i{display:block;height:100%;background:#58a6ff;width:0;transition:width .25s}
+.course-item{
+  display:grid;grid-template-columns:30px 1fr auto;gap:8px;align-items:center;
+  width:100%;text-align:left;border:1px solid #30363d;background:#161b22;
+  color:#e6edf3;border-radius:11px;padding:9px;margin:5px 0;font:inherit;
+}
+.course-item .num{font-weight:800;color:#8b949e}
+.course-item .name{font-size:12px;font-weight:700}
+.course-item .desc{font-size:10px;color:#8b949e;margin-top:2px}
+.course-item .state{font-size:15px}
+.course-item.active{border-color:#58a6ff;box-shadow:0 0 0 1px rgba(88,166,255,.2)}
+.course-item.done{border-color:#3fb950}
+.course-item.locked{opacity:.55}
+.course-item:not(.locked){cursor:pointer}
+#courseFaculty{margin-top:9px;width:100%;padding:8px;border-radius:10px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;font-size:11px}
+#coursePanel.minimized{width:44px;height:44px;padding:0;overflow:hidden;border-radius:50%}
+#coursePanel.minimized>*{display:none}
+#coursePanel.minimized:after{content:'☰';display:grid;place-items:center;width:44px;height:44px;font-size:19px;color:#fff}
+@media(max-width:600px){
+  #coursePanel{top:52px;width:calc(100vw - 20px);max-height:52vh}
+  .nav{max-width:60vw}
+  .nav a{font-size:10px;padding:5px 7px}
+}
+</style>
+
 </head>
 <body>
 <div class="nav">
-<a href="index.html">Timeline</a>
-<a href="learn.html">Learn</a>
-<a href="tooth3d.html">3D</a>
-<a href="label3d.html">Label</a>
-<a href="viva.html">Viva</a>
-<a href="gustafson.html" style="padding:5px 10px;border-radius:6px;background:#161b22;color:#e6edf3;text-decoration:none;font-size:12px;border:1px solid #30363d">Gustafson</a>
-<a href="attrition.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Attrition</a>
-<a href="periodontosis.html" style="padding:5px 9px;border-radius:6px;background:#0d1117;color:#e6edf3;text-decoration:none;font-size:11px;border:1px solid #30363d">Periodontosis</a>
-<a href="secondary.html">Secondary dentin</a>
-<a href="resorption.html">Root resorption</a>
-<a href="transparency.html">Transparency</a>
-<a href="cementum.html">Cementum</a>
-<a href="assignments.html">Exam</a>
-<a href="clinic.html" class="active">Clinic</a>
+<a href="clinic.html" class="active">Course</a>
+<a href="index.html" data-course-link="2">Timeline</a>
+<a href="fdinumbering.html" data-course-link="1">FDI</a>
+<a href="viva.html" data-course-link="12">Viva</a>
+<a href="assignments.html" data-course-link="13">Exam</a>
 </div>
 <div class="hint">Tap any object</div>
 <div class="info" id="info">Drag to rotate · pinch to zoom · tap an object</div>
+
+<div id="coursePanel">
+  <h2>Forensic Odontology · Age Assessment</h2>
+  <div class="sub">Student pathway — follow the modules in order</div>
+  <div class="course-progress"><i id="courseProgressBar"></i></div>
+  <div id="courseProgressText" class="sub">0 of 13 completed</div>
+  <div id="courseList"></div>
+  <button id="courseFaculty">Faculty / Lecture mode</button>
+</div>
 <div id="app"></div>
+
+
+<script>
+/* Controlled course hub — works with course-guard.js when present.
+   Static-site limitation: this is a learning/integrity indicator, not secure anti-cheating software. */
+(function(){
+  const modules = [
+    ["Age assessment","Methods and principles","learn.html"],
+    ["FDI numbering","Permanent and primary numbering","fdinumbering.html"],
+    ["Tooth development & eruption","Development, dentition and dental age","index.html"],
+    ["3D tooth identification","Explore the tooth model","tooth3d.html"],
+    ["Tooth labelling","Identify anatomical structures","label3d.html"],
+    ["Gustafson overview","APSRTC and method","gustafson.html"],
+    ["Attrition","Gustafson criterion A","attrition.html"],
+    ["Periodontosis","Gustafson criterion P","periodontosis.html"],
+    ["Secondary dentin","Gustafson criterion S","secondary.html"],
+    ["Root resorption","Gustafson criterion R","resorption.html"],
+    ["Root transparency","Gustafson criterion T","transparency.html"],
+    ["Cementum apposition","Gustafson criterion C","cementum.html"],
+    ["Viva & examination","Revision and assessment","viva.html"]
+  ];
+  const key="foCourseProgressV2";
+  const facultyKey="foFacultyModeV2";
+  const read=()=>{try{return JSON.parse(localStorage.getItem(key)||"[]")}catch(e){return[]}};
+  const save=a=>{try{localStorage.setItem(key,JSON.stringify(a))}catch(e){}};
+  const isFaculty=()=>localStorage.getItem(facultyKey)==="1";
+  const list=document.getElementById("courseList");
+  const bar=document.getElementById("courseProgressBar");
+  const ptxt=document.getElementById("courseProgressText");
+  function render(){
+    const done=read(), faculty=isFaculty();
+    if(!list)return;
+    list.innerHTML="";
+    modules.forEach((m,i)=>{
+      const unlocked=faculty || i===0 || done.indexOf(i-1)>=0;
+      const complete=done.indexOf(i)>=0;
+      const b=document.createElement("button");
+      b.className="course-item "+(complete?"done ":"")+(unlocked&&!complete?"active ":"")+(unlocked?"":"locked");
+      b.innerHTML='<span class="num">'+String(i+1).padStart(2,"0")+'</span>'+
+        '<span><div class="name">'+m[0]+'</div><div class="desc">'+m[1]+'</div></span>'+
+        '<span class="state">'+(complete?"✓":unlocked?"›":"🔒")+'</span>';
+      b.onclick=()=>{
+        if(!unlocked){
+          if(window.CourseIntegrity) CourseIntegrity.log("locked_attempt",{module:i+1,name:m[0]});
+          alert("This module is locked. Complete the previous module first.");
+          return;
+        }
+        if(window.CourseIntegrity) CourseIntegrity.log("module_open",{module:i+1,name:m[0]});
+        location.href=m[2];
+      };
+      list.appendChild(b);
+    });
+    const pct=Math.round(done.length/modules.length*100);
+    bar.style.width=pct+"%";
+    ptxt.textContent=done.length+" of "+modules.length+" modules completed · "+pct+"%";
+  }
+  window.FOCourse={modules,read,save,render,isFaculty,key,facultyKey};
+  document.getElementById("courseFaculty").onclick=()=>{
+    const now=isFaculty();
+    if(now){
+      localStorage.removeItem(facultyKey);
+      alert("Student mode restored.");
+    }else{
+      const code=prompt("Faculty lecture override code (local device only):");
+      /* Deliberately not a security credential. Default lecture code can be changed
+         in this HTML before deployment. */
+      if(code==="LECTURE"){
+        localStorage.setItem(facultyKey,"1");
+        alert("Faculty mode enabled on this device.");
+      }else if(code!==null) alert("Incorrect code.");
+    }
+    render();
+  };
+  render();
+})();
+</script>
 
 <script type="importmap">
 { "imports": {
@@ -432,7 +545,15 @@ renderer.domElement.addEventListener('pointerdown', e => {
     renderer.domElement.removeEventListener('pointerup', onUp);
     if (Math.hypot(u.clientX - sx, u.clientY - sy) < 10) {
       const hit = pickAt(u.clientX, u.clientY);
-      if (hit && hit.userData.url) window.location.href = hit.userData.url;
+      if (hit && hit.userData.url) {
+        const target = hit.userData.url;
+        if (window.CourseGuard && !CourseGuard.canOpen(target)) {
+          CourseGuard.log("locked_attempt",{target});
+          alert("Follow the teaching sequence. Complete the current module first.");
+          return;
+        }
+        window.location.href = target;
+      }
     }
   };
   renderer.domElement.addEventListener('pointerup', onUp);
@@ -491,7 +612,7 @@ tcss.textContent = `
 #tourCard .chip,#tourCard .ctl button,#tourCard .x{font-family:inherit;font-size:11px;font-weight:600;border:1px solid #30363d;background:#0d1117;color:#e6edf3;border-radius:14px;padding:5px 10px}
 #tourCard .chip.on{background:#d2a8ff;color:#0d1117;border-color:#d2a8ff}
 #tourCard .x{padding:5px 9px}
-#tcChips{display:flex;gap:5px;flex-wrap:wrap}
+#tcChips{display:none !important;gap:5px;flex-wrap:wrap}
 #tourCard .ttl{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:#d2a8ff;margin-bottom:4px}
 #tcText{max-height:24vh;overflow:auto}
 #tcText b{color:#f0883e}
@@ -705,4 +826,5 @@ function animate() {
 }
 animate();
 </script>
+<script src="course-guard.js"></script>
 </body></html>

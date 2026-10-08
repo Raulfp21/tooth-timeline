@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>FDI Tooth Numbering · Forensic Odontology</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:rgba(13,17,23,.97);border-bottom:1px solid #30363d;padding:12px 14px}
+h1{margin:0;font-size:22px}.sub{color:#8b949e;font-size:12px;margin-top:4px}
+.wrap{max-width:900px;margin:auto;padding:14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:16px;padding:14px;margin:12px 0}
+h2{font-size:18px;margin:0 0 12px;color:#d2a8ff}
+.orientation{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.q{background:#0d1117;border:1px solid #30363d;border-radius:13px;padding:14px;text-align:center}
+.q strong{display:block;font-size:24px;color:#fff}.q span{font-size:11px;color:#8b949e}
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.quad{border:1px solid #30363d;border-radius:14px;padding:10px;background:#0d1117}
+.quad h3{text-align:center;margin:2px 0 9px;font-size:13px;color:#f0f6fc}
+.row{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.tooth{min-height:48px;border:1px solid #30363d;border-radius:9px;background:#21262d;color:#f0f6fc;font-weight:800;font-size:15px;cursor:pointer}
+.tooth:active,.tooth.selected{background:#8957e5;border-color:#d2a8ff;color:#fff}
+.tooth small{display:block;font-size:8px;color:#c9d1d9;font-weight:500;margin-top:2px}
+.info{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:12px;margin-top:10px;font-size:14px;line-height:1.45}
+.info b{color:#d2a8ff}
+.pri .tooth{background:#1c2330}
+.note{font-size:12px;color:#8b949e;line-height:1.5}
+.back{display:inline-block;color:#fff;text-decoration:none;background:#21262d;border:1px solid #30363d;padding:7px 10px;border-radius:9px;font-size:12px;margin-bottom:10px}
+@media(max-width:620px){.orientation,.arch{grid-template-columns:1fr}.row{gap:4px}.tooth{min-height:44px;font-size:14px}}
+</style>
+</head><body>
+<header><a class="back" href="clinic.html">← Course</a><h1>FDI Tooth Numbering</h1><div class="sub">Practical identification module · no bite-mark analysis</div></header>
+<main class="wrap">
+<section class="card">
+<h2>Permanent dentition — quadrant logic</h2>
+<div class="orientation">
+<div class="q"><strong>1</strong><span>Maxillary right</span></div>
+<div class="q"><strong>2</strong><span>Maxillary left</span></div>
+<div class="q"><strong>4</strong><span>Mandibular right</span></div>
+<div class="q"><strong>3</strong><span>Mandibular left</span></div>
+</div>
+<p class="note">FDI two-digit system: the first digit identifies the quadrant; the second digit identifies the tooth position from the midline. This page is designed for rapid practical recognition.</p>
+<div class="arch">
+<div class="quad"><h3>MAXILLARY RIGHT · 1</h3><div class="row" id="q1"></div></div>
+<div class="quad"><h3>MAXILLARY LEFT · 2</h3><div class="row" id="q2"></div></div>
+<div class="quad"><h3>MANDIBULAR RIGHT · 4</h3><div class="row" id="q4"></div></div>
+<div class="quad"><h3>MANDIBULAR LEFT · 3</h3><div class="row" id="q3"></div></div>
+</div>
+<div class="info" id="info"><b>Tap a number</b> to see what it denotes.</div>
+</section>
+
+<section class="card pri">
+<h2>Primary / deciduous dentition</h2>
+<div class="orientation">
+<div class="q"><strong>5</strong><span>Maxillary right</span></div>
+<div class="q"><strong>6</strong><span>Maxillary left</span></div>
+<div class="q"><strong>8</strong><span>Mandibular right</span></div>
+<div class="q"><strong>7</strong><span>Mandibular left</span></div>
+</div>
+<div class="arch">
+<div class="quad"><h3>MAXILLARY RIGHT · 5</h3><div class="row" id="q5"></div></div>
+<div class="quad"><h3>MAXILLARY LEFT · 6</h3><div class="row" id="q6"></div></div>
+<div class="quad"><h3>MANDIBULAR RIGHT · 8</h3><div class="row" id="q8"></div></div>
+<div class="quad"><h3>MANDIBULAR LEFT · 7</h3><div class="row" id="q7"></div></div>
+</div>
+</section>
+</main>
+<script>
+const names=["Central incisor","Lateral incisor","Canine","First premolar","Second premolar","First molar","Second molar","Third molar"];
+const primary=["Central incisor","Lateral incisor","Canine","First molar","Second molar"];
+function fill(id,q,max=true){
+ const el=document.getElementById("q"+q); const arr=max?names:primary;
+ arr.forEach((n,i)=>{
+   const b=document.createElement("button"); b.className="tooth";
+   const num=String(q)+String(i+1); b.innerHTML=num+"<small>"+n+"</small>";
+   b.onclick=()=>{
+     document.querySelectorAll(".tooth.selected").forEach(x=>x.classList.remove("selected"));
+     b.classList.add("selected");
+     document.getElementById("info").innerHTML="<b>"+num+"</b> = "+(q<=4?"permanent ":"primary/deciduous ")+n+
+       "<br><span class='note'>Quadrant "+q+" · position "+(i+1)+" from the midline.</span>";
+     if(window.CourseIntegrity) CourseIntegrity.log("fdi_select",{number:num});
+   };
+   el.appendChild(b);
+ });
+}
+[1,2,3,4].forEach(q=>fill(q,q,true));
+[5,6,7,8].forEach(q=>fill(q,q,false));
+</script>
+<script src="course-guard.js"></script>
+</body></html>
